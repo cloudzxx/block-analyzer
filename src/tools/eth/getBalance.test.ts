@@ -1,0 +1,31 @@
+import { describe, it, expect, jest } from "bun:test"
+import { createEthGetBalanceTool } from "./getBalance"
+import { EtherscanProvider } from "../../providers/etherscan"
+import { createCache } from "../../cache/lru"
+import type { Config } from "../../shared/config"
+
+function mockConfig(): Config {
+  return { OPENAI_API_KEY: "s", OPENAI_MODEL: "m", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3000, FRONTEND_ORIGIN: "h" }
+}
+
+describe("eth_getBalance", () => {
+  it("returns balance for valid Ethereum address", async () => {
+    const provider = new EtherscanProvider("eth-key")
+    const cache = createCache()
+    const tool = createEthGetBalanceTool(provider, cache)
+    jest.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ status: "1", message: "OK", result: "1000000000000000000" }), { status: 200 })
+    )
+    const result = await tool.execute({ address: "0x742d35Cc6634C0532925a3b844b5d0f1c0a4c1e0" }, { config: mockConfig(), cache })
+    expect(result.success).toBe(true)
+    expect((result.data as any).balanceWei).toBe("1000000000000000000")
+  })
+
+  it("returns error for invalid address", async () => {
+    const provider = new EtherscanProvider("eth-key")
+    const cache = createCache()
+    const tool = createEthGetBalanceTool(provider, cache)
+    const result = await tool.execute({ address: "bad" }, { config: mockConfig(), cache })
+    expect(result.success).toBe(false)
+  })
+})
