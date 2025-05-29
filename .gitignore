@@ -5,3 +5,6 @@ data.db
 *.db
 *.db-journal
 *.db-wal
+
+.superpowers/
+.worktrees/
