@@ -11,11 +11,12 @@ describe("getEthPrice", () => {
     const coingecko = new CoinGeckoProvider()
     const cache = createCache()
     const tool = createGetEthPriceTool(coingecko, cache)
-    jest.spyOn(globalThis, "fetch").mockResolvedValue(
+    const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ ethereum: { usd: 3500.42 }, solana: { usd: 180.15 } }), { status: 200 })
     )
     const result = await tool.execute({}, { config: mc(), cache })
     expect(result.success).toBe(true)
     expect((result.data as any).ethereum).toBe(3500.42)
+    mockFetch.mockRestore()
   })
 })

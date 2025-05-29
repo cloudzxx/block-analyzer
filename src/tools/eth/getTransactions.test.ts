@@ -11,7 +11,7 @@ describe("eth_getTransactions", () => {
     const provider = new EtherscanProvider("k")
     const cache = createCache()
     const tool = createEthGetTransactionsTool(provider, cache)
-    jest.spyOn(globalThis, "fetch").mockResolvedValue(
+    const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ status: "1", message: "OK",
         result: [{ hash: "0xabc", from: "0xa", to: "0xb", value: "2000000000000000000", timeStamp: "1710000000", blockNumber: "1", gas: "21000", gasPrice: "50000000000" }]
       }), { status: 200 })
@@ -19,5 +19,6 @@ describe("eth_getTransactions", () => {
     const result = await tool.execute({ address: "0x742d35Cc6634C0532925a3b844b5d0f1c0a4c1e0" }, { config: mc(), cache })
     expect(result.success).toBe(true)
     expect((result.data as any[])[0].hash).toBe("0xabc")
+    mockFetch.mockRestore()
   })
 })

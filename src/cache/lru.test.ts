@@ -40,6 +40,6 @@ describe("createCache", () => {
   it("getOrSet fetches value on miss", () => {
     const fn = () => "computed"
     expect(cache.getOrSet<string>("miss", fn, 5000)).toBe("computed")
-    expect(cache.get("miss")).toBe("computed")
+    expect(cache.get<string>("miss")).toBe("computed")
   })
 })

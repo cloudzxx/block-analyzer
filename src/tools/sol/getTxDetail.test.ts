@@ -11,10 +11,11 @@ describe("sol_getTxDetail", () => {
     const provider = new SolscanProvider("k")
     const cache = createCache()
     const tool = createSolGetTxDetailTool(provider, cache)
-    jest.spyOn(globalThis, "fetch").mockResolvedValue(
+    const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ success: true, data: { txHash: "5x...abc", blockTime: 1710000000, slot: 123456, fee: 5000, signer: ["s"], status: "Success" } }), { status: 200 })
     )
     const result = await tool.execute({ signature: "5x...abc123456789012345678901234567890123456789012" }, { config: mc(), cache })
     expect(result.success).toBe(true)
+    mockFetch.mockRestore()
   })
 })

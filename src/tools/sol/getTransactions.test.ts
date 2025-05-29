@@ -11,11 +11,12 @@ describe("sol_getTransactions", () => {
     const provider = new SolscanProvider("k")
     const cache = createCache()
     const tool = createSolGetTransactionsTool(provider, cache)
-    jest.spyOn(globalThis, "fetch").mockResolvedValue(
+    const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ success: true, data: [{ txHash: "5x...abc", blockTime: 1710000000, slot: 123456, fee: 5000, signer: ["s"], status: "Success" }] }), { status: 200 })
     )
     const result = await tool.execute({ address: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV" }, { config: mc(), cache })
     expect(result.success).toBe(true)
     expect((result.data as any[])[0].txHash).toBe("5x...abc")
+    mockFetch.mockRestore()
   })
 })

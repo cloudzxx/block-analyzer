@@ -11,11 +11,12 @@ describe("sol_getBalance", () => {
     const provider = new SolscanProvider("k")
     const cache = createCache()
     const tool = createSolGetBalanceTool(provider, cache)
-    jest.spyOn(globalThis, "fetch").mockResolvedValue(
+    const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ success: true, data: { lamports: 5000000000 } }), { status: 200 })
     )
     const result = await tool.execute({ address: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV" }, { config: mc(), cache })
     expect(result.success).toBe(true)
     expect((result.data as any).lamports).toBe(5000000000)
+    mockFetch.mockRestore()
   })
 })
