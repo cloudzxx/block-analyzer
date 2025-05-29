@@ -1,0 +1,66 @@
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, sans-serif;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.userMsg, .assistantMsg {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.userMsg { background: #e3f2fd; }
+.assistantMsg { background: #f5f5f5; }
+
+.inputArea {
+  display: flex;
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.button {
+  padding: 12px 24px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.button:hover { background: #1565c0; }
+
+.toolInfo {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.toolInfo summary { cursor: pointer; color: #1976d2; }
+
+.toolInfo pre {
+  background: #fafafa;
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 12px;
+}
