@@ -8,28 +8,23 @@ export interface Config {
   FRONTEND_ORIGIN: string
 }
 
-function env(key: string, alias?: string): string | undefined {
-  return process.env[key] || (alias ? process.env[alias] : undefined)
-}
-
 export function loadConfig(): Config {
-  const apiKey = env("LLM_API_KEY", "OPENAI_API_KEY")
-  if (!apiKey) throw new Error("Missing LLM API key: set LLM_API_KEY")
-  const ethKey = process.env.ETHERSCAN_API_KEY
-  if (!ethKey) throw new Error("Missing ETHERSCAN_API_KEY")
-  const solKey = process.env.SOLSCAN_API_KEY
-  if (!solKey) throw new Error("Missing SOLSCAN_API_KEY")
-
-  const port = parseInt(process.env.PORT || "3000", 10)
+  const required = ["LLM_API_KEY", "ETHERSCAN_API_KEY", "SOLSCAN_API_KEY"] as const
+  for (const key of required) {
+    if (!process.env[key]) {
+      throw new Error(`Missing required env variable: ${key}`)
+    }
+  }
+  const port = parseInt(process.env.PORT || "3030", 10)
   if (isNaN(port) || port < 1 || port > 65535) {
     throw new Error(`Invalid PORT value: ${process.env.PORT}`)
   }
   return {
-    LLM_API_KEY: apiKey,
-    LLM_MODEL: env("LLM_MODEL", "OPENAI_MODEL") || "gpt-4o",
-    LLM_BASE_URL: env("LLM_BASE_URL", "OPENAI_BASE_URL") || "https://api.openai.com/v1",
-    ETHERSCAN_API_KEY: ethKey,
-    SOLSCAN_API_KEY: solKey,
+    LLM_API_KEY: process.env.LLM_API_KEY!,
+    LLM_MODEL: process.env.LLM_MODEL || "MiniMax-M2.7",
+    LLM_BASE_URL: process.env.LLM_BASE_URL || "https://api.minimaxi.com/v1",
+    ETHERSCAN_API_KEY: process.env.ETHERSCAN_API_KEY!,
+    SOLSCAN_API_KEY: process.env.SOLSCAN_API_KEY!,
     PORT: port,
     FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
   }

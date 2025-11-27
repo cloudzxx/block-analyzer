@@ -5,26 +5,12 @@ import type { Cache } from "../cache/lru"
 
 export interface AgentEvent {
   type: "text_delta" | "tool_start" | "tool_result" | "done" | "error"
-  data?: { content?: string; name?: string; args?: Record<string, unknown>; result?: string; message?: string }
-}
-
-interface LLMMessage {
-  role: "system" | "user" | "assistant" | "tool"
-  content: string | null
-  tool_calls?: Array<{
-    id: string
-    type: "function"
-    function: { name: string; arguments: string }
-  }>
-  tool_call_id?: string
-}
-
-interface LLMToolDef {
-  type: "function"
-  function: {
-    name: string
-    description: string
-    parameters: Record<string, unknown>
+  data?: {
+    content?: string
+    name?: string
+    args?: Record<string, unknown>
+    result?: string
+    message?: string
   }
 }
 
@@ -37,102 +23,112 @@ export class AgentExecutor {
 
   async *run(
     userMessage: string,
-    history: LLMMessage[] = [],
+    history: Array<{ role: string; content: string }> = [],
   ): AsyncGenerator<AgentEvent> {
-    const messages: LLMMessage[] = [
-      { role: "system", content: buildSystemPrompt() },
+    const systemMessage = { role: "system", content: buildSystemPrompt() }
+    const messages: Array<{ role: string; content: string; tool_calls?: unknown[] }> = [
+      systemMessage,
       ...history,
       { role: "user", content: userMessage },
     ]
 
-    const tools: LLMToolDef[] = this.registry.toOpenAIDefinitions()
+    const tools = this.registry.toOpenAIDefinitions()
+
+    let latestToolCalls: Array<{ id: string; function: { name: string; arguments: string } }> | null = null
 
     try {
-      for (let loop = 0; loop < 10; loop++) {
-        const response = await this.complete(messages, tools)
-        const choice = response.choices[0]
-        const msg = choice.message
+      const response = await this.callLLM(messages, tools)
+      const choice = response.choices?.[0]
 
-        if (msg.tool_calls && msg.tool_calls.length > 0) {
-          messages.push({
-            role: "assistant",
-            content: msg.content || null,
-            tool_calls: msg.tool_calls,
+      if (choice?.message?.content) {
+        yield { type: "text_delta", data: { content: choice.message.content } }
+      }
+
+      if (choice?.finish_reason === "tool_calls" || choice?.message?.tool_calls) {
+        const toolCalls = choice.message.tool_calls as Array<{
+          id: string
+          function: { name: string; arguments: string }
+        }>
+
+        for (const tc of toolCalls) {
+          const args = JSON.parse(tc.function.arguments)
+          yield { type: "tool_start", data: { name: tc.function.name, args, content: tc.function.arguments } }
+
+          const result = await this.registry.execute(tc.function.name, args, {
+            config: this.config,
+            cache: this.cache,
           })
 
-          for (const tc of msg.tool_calls) {
-            let args: Record<string, unknown> = {}
-            try {
-              args = JSON.parse(tc.function.arguments)
-            } catch {}
+          const resultStr = result.success
+            ? JSON.stringify(result.data)
+            : `Error: ${result.error}`
 
-            yield { type: "tool_start", data: { name: tc.function.name, args, content: tc.function.arguments } }
+          yield { type: "tool_result", data: { name: tc.function.name, result: resultStr } }
 
-            const result = await this.registry.execute(
-              tc.function.name,
-              args,
-              { config: this.config, cache: this.cache },
-            )
+          messages.push({
+            role: "tool",
+            tool_call_id: tc.id,
+            content: resultStr,
+          } as any)
+        }
 
-            const resultStr = result.success
-              ? JSON.stringify(result.data)
-              : `Error: ${result.error}`
-
-            yield { type: "tool_result", data: { name: tc.function.name, result: resultStr } }
-
-            messages.push({
-              role: "tool",
-              tool_call_id: tc.id,
-              content: resultStr,
-            })
-          }
-        } else {
-          yield { type: "text_delta", data: { content: msg.content || "" } }
-          yield { type: "done" }
-          return
+        const followUp = await this.callLLM(messages, tools)
+        const followUpContent = followUp.choices?.[0]?.message?.content
+        if (followUpContent) {
+          yield { type: "text_delta", data: { content: followUpContent } }
         }
       }
+
+      yield { type: "done" }
     } catch (err) {
       yield { type: "error", data: { message: (err as Error).message } }
     }
   }
 
-  private async complete(messages: LLMMessage[], tools: LLMToolDef[]) {
+  private async callLLM(
+    messages: Array<{ role: string; content: string; tool_calls?: unknown[] }>,
+    tools: any[],
+  ) {
     const body: Record<string, unknown> = {
       model: this.config.LLM_MODEL,
-      messages,
+      messages: messages.map((m) => {
+        const msg: Record<string, unknown> = { role: m.role, content: m.content }
+        if (m.tool_calls) msg.tool_calls = m.tool_calls
+        if (m.role === "tool") {
+          msg.tool_call_id = (m as any).tool_call_id
+        }
+        return msg
+      }),
       stream: false,
     }
-    if (tools.length > 0) body.tools = tools
+
+    if (tools.length > 0) {
+      body.tools = tools
+    }
 
     const res = await fetch(`${this.config.LLM_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${this.config.LLM_API_KEY}`,
+        Authorization: `Bearer ${this.config.LLM_API_KEY}`,
       },
       body: JSON.stringify(body),
     })
 
     if (!res.ok) {
-      const err = await res.text()
-      throw new Error(`LLM API error (${res.status}): ${err}`)
+      const text = await res.text().catch(() => "")
+      throw new Error(`LLM API error ${res.status}: ${text}`)
     }
 
-    return res.json() as Promise<{
+    return (await res.json()) as {
       choices: Array<{
         finish_reason: string
         message: {
-          role: string
           content: string | null
-          tool_calls?: Array<{
-            id: string
-            type: "function"
-            function: { name: string; arguments: string }
-          }>
+          tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }>
         }
       }>
-    }>
+    }
   }
 }
 

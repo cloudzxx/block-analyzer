@@ -67,6 +67,23 @@
 
 .actionBtn:hover { background: #0f3460; color: white; }
 
+.analyzeBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #e65100;
+  border: 1px solid #e65100;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.analyzeBtn:hover { background: #bf360c; }
+
 .actionLabel { font-size: 12px; }
 
 @media (max-width: 768px) {

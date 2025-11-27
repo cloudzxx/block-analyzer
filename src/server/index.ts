@@ -19,6 +19,8 @@ import { createSolGetTransactionsTool } from "../tools/sol/getTransactions"
 import { createSolGetTxDetailTool } from "../tools/sol/getTxDetail"
 import { createResolveAddressTool } from "../tools/common/resolveAddress"
 import { createGetEthPriceTool } from "../tools/common/getEthPrice"
+import { createAnalysisRouter } from "./routes/analysis"
+import { AnalysisExecutor as AnalysisExecutorClass } from "../analysis/executor"
 
 const config = loadConfig()
 initDb()
@@ -39,12 +41,14 @@ registry.register(createResolveAddressTool(cache))
 registry.register(createGetEthPriceTool(coingecko, cache))
 
 const executor = new AgentExecutor(config, registry, cache)
+const analysisExecutor = new AnalysisExecutorClass(config, cache)
 const app = express()
 
 app.use(express.json())
 app.use(corsMiddleware(config.FRONTEND_ORIGIN))
 app.use("/api", createChatRouter(executor))
 app.use("/api", createSessionsRouter())
+app.use("/api", createAnalysisRouter(analysisExecutor))
 app.use(errorHandler)
 
 app.listen(config.PORT, () => {

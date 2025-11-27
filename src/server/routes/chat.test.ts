@@ -7,7 +7,7 @@ import { createCache } from "../../cache/lru"
 import type { Config } from "../../shared/config"
 
 function mc(): Config {
-  return { LLM_API_KEY: "sk", LLM_MODEL: "gpt-4o", LLM_BASE_URL: "https://api.openai.com/v1", ETHERSCAN_API_KEY: "k", SOLSCAN_API_KEY: "k", PORT: 3000, FRONTEND_ORIGIN: "http://localhost:5173" }
+  return { LLM_API_KEY: "sk", LLM_MODEL: "MiniMax-M2.7", LLM_BASE_URL: "https://api.minimaxi.com/v1", ETHERSCAN_API_KEY: "k", SOLSCAN_API_KEY: "k", PORT: 3030, FRONTEND_ORIGIN: "http://localhost:5173" }
 }
 
 describe("POST /api/chat", () => {

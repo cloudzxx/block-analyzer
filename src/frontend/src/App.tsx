@@ -6,12 +6,14 @@ import { useSavedAddresses } from "./hooks/useSavedAddresses"
 import { TopBar } from "./components/TopBar"
 import { Sidebar } from "./components/Sidebar"
 import { ChatMessage } from "./components/ChatMessage"
+import { AnalyzeView } from "./components/AnalyzeView"
 import { QUICK_ACTIONS, QUERY_TEMPLATES, CAPABILITIES } from "./types"
 import type { QuickAction } from "./types"
 import styles from "./App.module.css"
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [activeView, setActiveView] = useState<"chat" | "analyze">("chat")
   const [input, setInput] = useState("")
   const { chain, setChain } = useChain()
   const { sessions, activeId, setActiveId, createSession } = useSessions()
@@ -19,6 +21,10 @@ function App() {
   const { messages, sendMessage, isLoading, clearMessages } = useChat()
 
   const handleAction = (action: QuickAction) => {
+    if (action.id === "analyze") {
+      setActiveView("analyze")
+      return
+    }
     const prompt = action.prompt(input || undefined)
     setInput("")
     sendMessage(prompt)
@@ -73,36 +79,56 @@ function App() {
           capabilities={CAPABILITIES}
         />
         <div className={styles.chatArea}>
-          <div className={styles.messages}>
-            {messages.length === 0 && (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>&#x29EB;</div>
-                <h2>Block Analyzer</h2>
-                <p>Analyze on-chain data across Ethereum and Solana.<br/>Try a quick action above or type a question.</p>
-              </div>
-            )}
-            {messages.map((msg, i) => (
-              <ChatMessage
-                key={i}
-                message={msg}
-                isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
-                chain={chain}
-              />
-            ))}
-          </div>
-          <div className={styles.inputArea}>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Ask about blockchain data..."
-              className={styles.input}
-              disabled={isLoading}
-            />
-            <button onClick={handleSend} className={styles.button} disabled={isLoading}>
-              {isLoading ? "..." : "Send"}
+          <div className={styles.viewTabs}>
+            <button
+              className={`${styles.viewTab} ${activeView === "chat" ? styles.activeViewTab : ""}`}
+              onClick={() => setActiveView("chat")}
+            >
+              Chat
+            </button>
+            <button
+              className={`${styles.viewTab} ${activeView === "analyze" ? styles.activeViewTab : ""}`}
+              onClick={() => setActiveView("analyze")}
+            >
+              Analyze
             </button>
           </div>
+          {activeView === "chat" ? (
+            <>
+              <div className={styles.messages}>
+                {messages.length === 0 && (
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyIcon}>&#x29EB;</div>
+                    <h2>Block Analyzer</h2>
+                    <p>Analyze on-chain data across Ethereum and Solana.<br/>Try a quick action above or type a question.</p>
+                  </div>
+                )}
+                {messages.map((msg, i) => (
+                  <ChatMessage
+                    key={i}
+                    message={msg}
+                    isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
+                    chain={chain}
+                  />
+                ))}
+              </div>
+              <div className={styles.inputArea}>
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  placeholder="Ask about blockchain data..."
+                  className={styles.input}
+                  disabled={isLoading}
+                />
+                <button onClick={handleSend} className={styles.button} disabled={isLoading}>
+                  {isLoading ? "..." : "Send"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <AnalyzeView chain={chain} />
+          )}
         </div>
       </div>
     </div>

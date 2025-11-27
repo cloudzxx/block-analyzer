@@ -30,6 +30,14 @@ export function TopBar({ chain, onChainChange, actions, onAction, onToggleSideba
       </select>
 
       <div className={styles.actions}>
+        <button
+          className={styles.analyzeBtn}
+          onClick={() => onAction({ id: "analyze", icon: "🧠", label: "Analyze", prompt: () => "" })}
+          title="Analyze wallet"
+        >
+          <span>🧠</span>
+          <span className={styles.actionLabel}>Analyze</span>
+        </button>
         {actions.map((a) => (
           <button
             key={a.id}
