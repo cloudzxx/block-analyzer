@@ -9,12 +9,14 @@ interface EtherscanResponse<T> {
 
 export class EtherscanProvider implements Provider {
   readonly name = "etherscan"
-  private readonly baseUrl = "https://api.etherscan.io/api"
+  private readonly baseUrl = "https://api.etherscan.io/v2/api"
+  private readonly chainId = "1"
 
   constructor(private readonly apiKey: string) {}
 
   async request<T>(params: Record<string, string>): Promise<T> {
     const url = new URL(this.baseUrl)
+    url.searchParams.set("chainid", this.chainId)
     url.searchParams.set("apikey", this.apiKey)
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.set(k, v)

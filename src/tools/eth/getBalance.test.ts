@@ -5,7 +5,7 @@ import { createCache } from "../../cache/lru"
 import type { Config } from "../../shared/config"
 
 function mockConfig(): Config {
-  return { OPENAI_API_KEY: "s", OPENAI_MODEL: "m", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3000, FRONTEND_ORIGIN: "h" }
+  return { LLM_API_KEY: "s", LLM_MODEL: "m", LLM_BASE_URL: "https://api.openai.com/v1", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3000, FRONTEND_ORIGIN: "h" }
 }
 
 describe("eth_getBalance", () => {

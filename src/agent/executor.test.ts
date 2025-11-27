@@ -6,29 +6,26 @@ import type { Tool, ToolResult } from "../tools/types"
 import { createCache } from "../cache/lru"
 
 function mockConfig(): Config {
-  return { OPENAI_API_KEY: "sk-test", OPENAI_MODEL: "gpt-4o", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3000, FRONTEND_ORIGIN: "http://localhost:5173" }
+  return { LLM_API_KEY: "sk-test", LLM_MODEL: "gpt-4o", LLM_BASE_URL: "https://api.openai.com/v1", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3000, FRONTEND_ORIGIN: "http://localhost:5173" }
 }
 
 describe("AgentExecutor", () => {
-  it("streams text deltas from OpenAI", async () => {
-    const config = mockConfig()
-    const registry = new ToolRegistry()
-    const cache = createCache()
-    const executor = new AgentExecutor(config, registry, cache)
+  it("emits text_delta and done for text-only response", async () => {
+    const executor = new AgentExecutor(mockConfig(), new ToolRegistry(), createCache())
 
-    const mockStream = (async function* () {
-      yield { choices: [{ delta: { content: "Hello" }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: { content: " world" }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: {}, index: 0, finish_reason: "stop" }] }
-    })()
+    jest.spyOn(executor as any, "complete").mockResolvedValue({
+      choices: [{
+        finish_reason: "stop",
+        message: { role: "assistant", content: "Hello world" },
+      }],
+    })
 
-    jest.spyOn(executor as any, "createStream").mockResolvedValue(mockStream)
-
-    const chunks: string[] = []
-    for await (const event of executor.run("Hello")) {
-      if (event.type === "text_delta") chunks.push(event.data!.content!)
-    }
-    expect(chunks.join("")).toBe("Hello world")
+    const events: Array<{ type: string; data?: any }> = []
+    for await (const event of executor.run("hi")) events.push(event)
+    expect(events).toHaveLength(2)
+    expect(events[0].type).toBe("text_delta")
+    expect(events[0].data?.content).toBe("Hello world")
+    expect(events[1].type).toBe("done")
   })
 
   it("handles tool calls and emits tool events", async () => {
@@ -46,21 +43,28 @@ describe("AgentExecutor", () => {
 
     const executor = new AgentExecutor(config, registry, cache)
 
-    const mockStream1 = (async function* () {
-      yield { choices: [{ delta: { tool_calls: [{ index: 0, id: "call_1", function: { name: "test", arguments: '{"x":"hi"}' } }] }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: {}, index: 0, finish_reason: "tool_calls" }] }
-    })()
-
-    const mockStream2 = (async function* () {
-      yield { choices: [{ delta: { content: "Done" }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: {}, index: 0, finish_reason: "stop" }] }
-    })()
-
-    let callCount = 0
-    jest.spyOn(executor as any, "createStream").mockImplementation(() => {
-      callCount++
-      return callCount === 1 ? mockStream1 : mockStream2
-    })
+    const mockComplete = jest.spyOn(executor as any, "complete")
+    mockComplete
+      .mockResolvedValueOnce({
+        choices: [{
+          finish_reason: "tool_calls",
+          message: {
+            role: "assistant",
+            content: null,
+            tool_calls: [{
+              id: "call_1",
+              type: "function" as const,
+              function: { name: "test", arguments: '{"x":"hi"}' },
+            }],
+          },
+        }],
+      })
+      .mockResolvedValueOnce({
+        choices: [{
+          finish_reason: "stop",
+          message: { role: "assistant", content: "Done" },
+        }],
+      })
 
     const events: string[] = []
     for await (const event of executor.run("test")) events.push(event.type)

@@ -22,7 +22,6 @@ export function createChatRouter(executor: AgentExecutor): Router {
       res.write(formatSseEvent(event))
     }
 
-    res.write("event: done\ndata: {}\n\n")
     res.end()
   })
 

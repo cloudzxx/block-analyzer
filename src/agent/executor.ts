@@ -1,5 +1,3 @@
-import OpenAI from "openai"
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
 import { ToolRegistry } from "./registry"
 import { buildSystemPrompt } from "./prompt"
 import type { Config } from "../shared/config"
@@ -10,55 +8,64 @@ export interface AgentEvent {
   data?: { content?: string; name?: string; args?: Record<string, unknown>; result?: string; message?: string }
 }
 
-export class AgentExecutor {
-  private openai: OpenAI
+interface LLMMessage {
+  role: "system" | "user" | "assistant" | "tool"
+  content: string | null
+  tool_calls?: Array<{
+    id: string
+    type: "function"
+    function: { name: string; arguments: string }
+  }>
+  tool_call_id?: string
+}
 
+interface LLMToolDef {
+  type: "function"
+  function: {
+    name: string
+    description: string
+    parameters: Record<string, unknown>
+  }
+}
+
+export class AgentExecutor {
   constructor(
     private config: Config,
     private registry: ToolRegistry,
     private cache: Cache,
-  ) {
-    this.openai = new OpenAI({ apiKey: config.OPENAI_API_KEY })
-  }
+  ) {}
 
   async *run(
     userMessage: string,
-    history: ChatCompletionMessageParam[] = [],
+    history: LLMMessage[] = [],
   ): AsyncGenerator<AgentEvent> {
-    const systemMessage: ChatCompletionMessageParam = {
-      role: "system",
-      content: buildSystemPrompt(),
-    }
-
-    const messages: ChatCompletionMessageParam[] = [
-      systemMessage,
+    const messages: LLMMessage[] = [
+      { role: "system", content: buildSystemPrompt() },
       ...history,
       { role: "user", content: userMessage },
     ]
 
-    const tools = this.registry.toOpenAIDefinitions()
-
-    type AccumulatedToolCall = { id: string; function: { name: string; arguments: string } }
-
-    let latestToolCalls: AccumulatedToolCall[] | null = null
+    const tools: LLMToolDef[] = this.registry.toOpenAIDefinitions()
 
     try {
-      let stream = await this.createStream(messages, tools)
+      for (let loop = 0; loop < 10; loop++) {
+        const response = await this.complete(messages, tools)
+        const choice = response.choices[0]
+        const msg = choice.message
 
-      for await (const chunk of stream) {
-        const delta = chunk.choices[0]?.delta
+        if (msg.tool_calls && msg.tool_calls.length > 0) {
+          messages.push({
+            role: "assistant",
+            content: msg.content || null,
+            tool_calls: msg.tool_calls,
+          })
 
-        if (delta?.content) {
-          yield { type: "text_delta", data: { content: delta.content } }
-        }
+          for (const tc of msg.tool_calls) {
+            let args: Record<string, unknown> = {}
+            try {
+              args = JSON.parse(tc.function.arguments)
+            } catch {}
 
-        if (delta?.tool_calls) {
-          latestToolCalls = this.accumulateToolCalls(delta.tool_calls, messages)
-        }
-
-        if (chunk.choices[0]?.finish_reason === "tool_calls" && latestToolCalls) {
-          for (const tc of latestToolCalls) {
-            const args = JSON.parse(tc.function.arguments)
             yield { type: "tool_start", data: { name: tc.function.name, args, content: tc.function.arguments } }
 
             const result = await this.registry.execute(
@@ -77,22 +84,12 @@ export class AgentExecutor {
               role: "tool",
               tool_call_id: tc.id,
               content: resultStr,
-            } as ChatCompletionMessageParam)
+            })
           }
-
-          latestToolCalls = null
-
-          const followUpStream = await this.createStream(messages, tools)
-          for await (const chunk of followUpStream) {
-            if (chunk.choices[0]?.delta?.content) {
-              yield { type: "text_delta", data: { content: chunk.choices[0].delta.content } }
-            }
-          }
+        } else {
+          yield { type: "text_delta", data: { content: msg.content || "" } }
           yield { type: "done" }
-        }
-
-        if (chunk.choices[0]?.finish_reason === "stop") {
-          yield { type: "done" }
+          return
         }
       }
     } catch (err) {
@@ -100,49 +97,42 @@ export class AgentExecutor {
     }
   }
 
-  private async createStream(
-    messages: ChatCompletionMessageParam[],
-    tools: any[],
-  ) {
-    return this.openai.chat.completions.create({
-      model: this.config.OPENAI_MODEL,
+  private async complete(messages: LLMMessage[], tools: LLMToolDef[]) {
+    const body: Record<string, unknown> = {
+      model: this.config.LLM_MODEL,
       messages,
-      tools: tools.length > 0 ? tools : undefined,
-      stream: true,
+      stream: false,
+    }
+    if (tools.length > 0) body.tools = tools
+
+    const res = await fetch(`${this.config.LLM_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${this.config.LLM_API_KEY}`,
+      },
+      body: JSON.stringify(body),
     })
-  }
 
-  private accumulateToolCalls(
-    rawToolCalls: OpenAI.Chat.Completions.ChatCompletionChunk.Choice.Delta.ToolCall[],
-    messages: ChatCompletionMessageParam[],
-  ) {
-    const accumulated: Record<number, { id: string; function: { name: string; arguments: string } }> = {}
-
-    for (const tc of rawToolCalls) {
-      if (!accumulated[tc.index]) {
-        accumulated[tc.index] = {
-          id: tc.id || "",
-          function: { name: tc.function?.name || "", arguments: tc.function?.arguments || "" },
-        }
-      } else {
-        if (tc.function?.arguments) {
-          accumulated[tc.index].function.arguments += tc.function.arguments
-        }
-      }
+    if (!res.ok) {
+      const err = await res.text()
+      throw new Error(`LLM API error (${res.status}): ${err}`)
     }
 
-    const result = Object.values(accumulated)
-    messages.push({
-      role: "assistant",
-      tool_calls: result.map(tc => ({
-        id: tc.id,
-        type: "function" as const,
-        function: tc.function,
-      })),
-      content: null,
-    } as any)
-
-    return result
+    return res.json() as Promise<{
+      choices: Array<{
+        finish_reason: string
+        message: {
+          role: string
+          content: string | null
+          tool_calls?: Array<{
+            id: string
+            type: "function"
+            function: { name: string; arguments: string }
+          }>
+        }
+      }>
+    }>
   }
 }
 
