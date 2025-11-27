@@ -27,6 +27,7 @@ function App() {
   const [input, setInput] = useState("")
   const [pendingAction, setPendingAction] = useState<QuickAction | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const messagesRef = useRef<HTMLDivElement>(null)
   const { chain, setChain } = useChain()
   const { sessions, activeId, setActiveId, createSession } = useSessions()
   const { addresses: savedAddresses, add: addAddress, remove: removeAddress } = useSavedAddresses()
@@ -37,6 +38,12 @@ function App() {
       inputRef.current.focus()
     }
   }, [pendingAction])
+
+  useEffect(() => {
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+    }
+  }, [messages, isLoading])
 
   const resolveAction = (action: QuickAction, addr: string) => {
     setPendingAction(null)
@@ -137,7 +144,7 @@ function App() {
           </div>
           {activeView === "chat" ? (
             <>
-              <div className={styles.messages}>
+              <div className={styles.messages} ref={messagesRef}>
                 {messages.length === 0 && (
                   <div className={styles.emptyState}>
                     <div className={styles.emptyIcon}>&#x29EB;</div>

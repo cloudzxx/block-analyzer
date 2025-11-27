@@ -20,7 +20,7 @@ interface Props {
 
 export function ToolCallCard({ call }: Props) {
   const [showArgs, setShowArgs] = useState(false)
-  const [showResult, setShowResult] = useState(false)
+  const [showResult, setShowResult] = useState(call.status === "done" && !!call.result)
   const chain = detectChain(call.name)
 
   return (
