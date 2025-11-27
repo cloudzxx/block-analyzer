@@ -75,3 +75,37 @@ export const CAPABILITIES: ToolInfo[] = [
   { name: "resolveAddress", description: "Resolve ENS/address to canonical form", chain: "common", example: "vitalik.eth" },
   { name: "getEthPrice", description: "Get current ETH price in USD", chain: "common", example: "current price" },
 ]
+
+export interface AnalysisReport {
+  address: string
+  resolvedAddress: string
+  label?: string
+  chain: string
+  analysisType: string
+  timestamp: number
+  balance: {
+    value: string
+    unit: string
+    usdValue: string | null
+  }
+  transactions: {
+    count: number
+    timeRange: { start: string; end: string } | null
+    topCounterparties: Array<{
+      address: string
+      txCount: number
+      totalValue: string
+    }>
+  }
+  risk: {
+    score: "low" | "medium" | "high"
+    flags: Array<{ label: string; severity: "info" | "warning" | "critical" }>
+  }
+  insights: string
+}
+
+export interface AnalysisProgress {
+  step: string
+  label: string
+  status: "pending" | "running" | "done"
+}

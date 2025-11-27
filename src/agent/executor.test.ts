@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from "bun:test"
+import { describe, it, expect, afterEach } from "bun:test"
 import { AgentExecutor } from "./executor"
 import { ToolRegistry } from "./registry"
 import type { Config } from "../shared/config"
@@ -6,24 +6,23 @@ import type { Tool, ToolResult } from "../tools/types"
 import { createCache } from "../cache/lru"
 
 function mockConfig(): Config {
-  return { OPENAI_API_KEY: "sk-test", OPENAI_MODEL: "gpt-4o", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3000, FRONTEND_ORIGIN: "http://localhost:5173" }
+  return { LLM_API_KEY: "sk-test", LLM_MODEL: "MiniMax-M2.7", LLM_BASE_URL: "https://api.minimaxi.com/v1", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3030, FRONTEND_ORIGIN: "http://localhost:5173" }
 }
 
+const origFetch = globalThis.fetch
+
 describe("AgentExecutor", () => {
-  it("streams text deltas from OpenAI", async () => {
-    const config = mockConfig()
-    const registry = new ToolRegistry()
-    const cache = createCache()
-    const executor = new AgentExecutor(config, registry, cache)
+  afterEach(() => {
+    globalThis.fetch = origFetch
+  })
 
-    const mockStream = (async function* () {
-      yield { choices: [{ delta: { content: "Hello" }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: { content: " world" }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: {}, index: 0, finish_reason: "stop" }] }
-    })()
+  it("emits text_delta for text response", async () => {
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({
+        choices: [{ finish_reason: "stop", message: { content: "Hello world", role: "assistant" } }],
+      }), { status: 200, headers: { "Content-Type": "application/json" } })
 
-    jest.spyOn(executor as any, "createStream").mockResolvedValue(mockStream)
-
+    const executor = new AgentExecutor(mockConfig(), new ToolRegistry(), createCache())
     const chunks: string[] = []
     for await (const event of executor.run("Hello")) {
       if (event.type === "text_delta") chunks.push(event.data!.content!)
@@ -32,10 +31,8 @@ describe("AgentExecutor", () => {
   })
 
   it("handles tool calls and emits tool events", async () => {
-    const config = mockConfig()
     const registry = new ToolRegistry()
     const cache = createCache()
-
     const testTool: Tool = {
       name: "test",
       description: "t",
@@ -44,28 +41,40 @@ describe("AgentExecutor", () => {
     }
     registry.register(testTool)
 
-    const executor = new AgentExecutor(config, registry, cache)
-
-    const mockStream1 = (async function* () {
-      yield { choices: [{ delta: { tool_calls: [{ index: 0, id: "call_1", function: { name: "test", arguments: '{"x":"hi"}' } }] }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: {}, index: 0, finish_reason: "tool_calls" }] }
-    })()
-
-    const mockStream2 = (async function* () {
-      yield { choices: [{ delta: { content: "Done" }, index: 0, finish_reason: null as string | null }] }
-      yield { choices: [{ delta: {}, index: 0, finish_reason: "stop" }] }
-    })()
-
     let callCount = 0
-    jest.spyOn(executor as any, "createStream").mockImplementation(() => {
+    globalThis.fetch = async () => {
       callCount++
-      return callCount === 1 ? mockStream1 : mockStream2
-    })
+      if (callCount === 1) {
+        return new Response(JSON.stringify({
+          choices: [{
+            finish_reason: "tool_calls",
+            message: {
+              content: null,
+              role: "assistant",
+              tool_calls: [{ id: "call_1", function: { name: "test", arguments: '{"x":"hi"}' } }],
+            },
+          }],
+        }), { status: 200, headers: { "Content-Type": "application/json" } })
+      }
+      return new Response(JSON.stringify({
+        choices: [{ finish_reason: "stop", message: { content: "Done", role: "assistant" } }],
+      }), { status: 200, headers: { "Content-Type": "application/json" } })
+    }
 
+    const executor = new AgentExecutor(mockConfig(), registry, cache)
     const events: string[] = []
     for await (const event of executor.run("test")) events.push(event.type)
     expect(events).toContain("tool_start")
     expect(events).toContain("tool_result")
     expect(events).toContain("done")
+  })
+
+  it("emits error event on API failure", async () => {
+    globalThis.fetch = async () => new Response("Bad Request", { status: 400 })
+
+    const executor = new AgentExecutor(mockConfig(), new ToolRegistry(), createCache())
+    const events: string[] = []
+    for await (const event of executor.run("Hello")) events.push(event.type)
+    expect(events).toContain("error")
   })
 })
