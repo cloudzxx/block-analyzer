@@ -1,10 +1,5 @@
 import { useState, useCallback } from "react"
-
-export interface ChatMessage {
-  role: "user" | "assistant" | "tool"
-  content: string
-  toolInfo?: { name: string; args: string; result: string }
-}
+import type { ChatMessage, ToolCallInfo } from "../types"
 
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -12,8 +7,12 @@ export function useChat() {
 
   const sendMessage = useCallback(async (userMsg: string) => {
     if (!userMsg.trim()) return
+
     setMessages((prev) => [...prev, { role: "user", content: userMsg }])
     setIsLoading(true)
+
+    const assistantMsg: ChatMessage = { role: "assistant", content: "", toolCalls: [] }
+    setMessages((prev) => [...prev, assistantMsg])
 
     try {
       const res = await fetch("/api/chat", {
@@ -25,9 +24,6 @@ export function useChat() {
       const reader = res.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ""
-      let assistantContent = ""
-
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }])
 
       while (true) {
         const { done, value } = await reader.read()
@@ -51,33 +47,60 @@ export function useChat() {
 
           switch (eventType) {
             case "text_delta": {
-              const text = (data.content as string) || ""
-              assistantContent += text
               setMessages((prev) => {
                 const copy = [...prev]
-                copy[copy.length - 1] = { ...copy[copy.length - 1], content: assistantContent }
+                const last = copy[copy.length - 1]
+                copy[copy.length - 1] = { ...last, content: last.content + (data.content as string || "") }
                 return copy
               })
               break
             }
-            case "tool_start":
-            case "tool_result": {
+            case "tool_start": {
+              const toolCall: ToolCallInfo = {
+                name: data.name as string || "",
+                args: data.content as string || "",
+                result: "",
+                status: "running",
+              }
               setMessages((prev) => {
                 const copy = [...prev]
+                const last = copy[copy.length - 1]
                 copy[copy.length - 1] = {
-                  ...copy[copy.length - 1],
-                  toolInfo: {
-                    name: (data.name as string) || "",
-                    args: eventType === "tool_start" ? (data.content as string) || "" : "",
-                    result: eventType === "tool_result" ? (data.result as string) || "" : "",
-                  },
+                  ...last,
+                  toolCalls: [...(last.toolCalls || []), toolCall],
                 }
                 return copy
               })
               break
             }
+            case "tool_result": {
+              setMessages((prev) => {
+                const copy = [...prev]
+                const last = copy[copy.length - 1]
+                const calls = [...(last.toolCalls || [])]
+                const idx = calls.findIndex((t) => t.name === data.name)
+                if (idx !== -1) {
+                  calls[idx] = { ...calls[idx], result: data.result as string || "", status: "done" }
+                }
+                copy[copy.length - 1] = { ...last, toolCalls: calls }
+                return copy
+              })
+              break
+            }
             case "done": break
-            case "error": console.error("Chat error:", data.message); break
+            case "error": {
+              setMessages((prev) => {
+                const copy = [...prev]
+                const last = copy[copy.length - 1]
+                const calls = [...(last.toolCalls || [])]
+                if (calls.length > 0) {
+                  calls[calls.length - 1] = { ...calls[calls.length - 1], status: "error" }
+                }
+                copy[copy.length - 1] = { ...last, toolCalls: calls }
+                return copy
+              })
+              break
+            }
           }
         }
       }
@@ -88,5 +111,7 @@ export function useChat() {
     }
   }, [])
 
-  return { messages, sendMessage, isLoading }
+  const clearMessages = useCallback(() => setMessages([]), [])
+
+  return { messages, sendMessage, isLoading, clearMessages }
 }
