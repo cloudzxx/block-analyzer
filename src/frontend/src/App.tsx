@@ -5,6 +5,7 @@ import { useSessions } from "./hooks/useSessions"
 import { useSavedAddresses } from "./hooks/useSavedAddresses"
 import { TopBar } from "./components/TopBar"
 import { Sidebar } from "./components/Sidebar"
+import { PillRow } from "./components/PillRow"
 import { ChatMessage } from "./components/ChatMessage"
 import { AnalyzeView } from "./components/AnalyzeView"
 import { QUICK_ACTIONS, QUERY_TEMPLATES, CAPABILITIES } from "./types"
@@ -12,7 +13,7 @@ import type { QuickAction } from "./types"
 import styles from "./App.module.css"
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeView, setActiveView] = useState<"chat" | "analyze">("chat")
   const [input, setInput] = useState("")
   const { chain, setChain } = useChain()
@@ -21,10 +22,6 @@ function App() {
   const { messages, sendMessage, isLoading, clearMessages } = useChat()
 
   const handleAction = (action: QuickAction) => {
-    if (action.id === "analyze") {
-      setActiveView("analyze")
-      return
-    }
     const prompt = action.prompt(input || undefined)
     setInput("")
     sendMessage(prompt)
@@ -58,11 +55,11 @@ function App() {
       <TopBar
         chain={chain}
         onChainChange={setChain}
-        actions={QUICK_ACTIONS}
-        onAction={handleAction}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         sidebarOpen={sidebarOpen}
+        onAnalyzeClick={() => setActiveView("analyze")}
       />
+      <PillRow actions={QUICK_ACTIONS} onAction={handleAction} />
       <div className={styles.main}>
         <Sidebar
           open={sidebarOpen}
@@ -77,6 +74,7 @@ function App() {
           onTemplateClick={handleTemplateClick}
           queryTemplates={QUERY_TEMPLATES}
           capabilities={CAPABILITIES}
+          onClose={() => setSidebarOpen(false)}
         />
         <div className={styles.chatArea}>
           <div className={styles.viewTabs}>
@@ -84,13 +82,13 @@ function App() {
               className={`${styles.viewTab} ${activeView === "chat" ? styles.activeViewTab : ""}`}
               onClick={() => setActiveView("chat")}
             >
-              Chat
+              💬 Chat
             </button>
             <button
               className={`${styles.viewTab} ${activeView === "analyze" ? styles.activeViewTab : ""}`}
               onClick={() => setActiveView("analyze")}
             >
-              Analyze
+              🧠 Analyze
             </button>
           </div>
           {activeView === "chat" ? (
@@ -100,7 +98,7 @@ function App() {
                   <div className={styles.emptyState}>
                     <div className={styles.emptyIcon}>&#x29EB;</div>
                     <h2>Block Analyzer</h2>
-                    <p>Analyze on-chain data across Ethereum and Solana.<br/>Try a quick action above or type a question.</p>
+                    <p>Analyze on-chain data across Ethereum and Solana. Try a quick action above or type a question.</p>
                   </div>
                 )}
                 {messages.map((msg, i) => (

@@ -8,8 +8,8 @@ const groupStyle: React.CSSProperties = { marginBottom: 16 }
 
 const cardStyle: React.CSSProperties = {
   padding: "8px 10px",
-  background: "white",
-  border: "1px solid #e0e0e0",
+  background: "var(--glass-bg)",
+  border: "1px solid var(--glass-border)",
   borderRadius: 6,
   marginBottom: 6,
 }
@@ -23,16 +23,16 @@ export function CapabilitiesShowcase({ tools }: Props) {
 
   return (
     <div>
-      <h4 style={{ margin: "0 0 8px" }}>Tools by Chain</h4>
+      <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "var(--text-primary)" }}>Tools by Chain</h4>
       {(Object.entries(groups) as [keyof typeof groups, ToolInfo[]][]).map(([key, items]) => (
         <div key={key} style={groupStyle}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 4 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>
             {chainLabels[key]}
           </div>
           {items.map((t) => (
             <div key={t.name} style={cardStyle}>
-              <div style={{ fontSize: 12, fontWeight: 500, fontFamily: "monospace" }}>{t.name}</div>
-              <div style={{ fontSize: 11, color: "#666" }}>{t.description}</div>
+              <div style={{ fontSize: 12, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}>{t.name}</div>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{t.description}</div>
             </div>
           ))}
         </div>

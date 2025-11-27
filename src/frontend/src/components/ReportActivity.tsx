@@ -6,23 +6,39 @@ interface Props {
 
 export function ReportActivity({ txCount, timeRange, chain }: Props) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
-      <div style={{ border: "1px solid #e0e0e0", borderRadius: 8, padding: 14 }}>
-        <div style={{ fontSize: 11, color: "#999", marginBottom: 4 }}>Transactions (recent)</div>
-        <div style={{ fontSize: 24, fontWeight: 700 }}>{txCount.toLocaleString()}</div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+      <div style={{
+        background: "var(--glass-bg)",
+        border: "1px solid var(--glass-border)",
+        borderRadius: 12,
+        padding: 16,
+      }}>
+        <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          Transactions
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>
+          {txCount.toLocaleString()}
+        </div>
         {timeRange && (
-          <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
+          <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 6 }}>
             {new Date(timeRange.start).toLocaleDateString()} — {new Date(timeRange.end).toLocaleDateString()}
           </div>
         )}
       </div>
-      <div style={{ border: "1px solid #e0e0e0", borderRadius: 8, padding: 14 }}>
-        <div style={{ fontSize: 11, color: "#999", marginBottom: 4 }}>Network</div>
-        <div style={{ fontSize: 24, fontWeight: 700 }}>
+      <div style={{
+        background: "var(--glass-bg)",
+        border: "1px solid var(--glass-border)",
+        borderRadius: 12,
+        padding: 16,
+      }}>
+        <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          Network
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>
           {chain === "ethereum" ? "Ethereum" : "Solana"}
         </div>
-        <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>
-          {chain === "ethereum" ? "Mainnet" : "Mainnet"}
+        <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 6 }}>
+          Mainnet
         </div>
       </div>
     </div>

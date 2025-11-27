@@ -7,13 +7,6 @@ import type { Chain } from "../types"
 
 interface Props { chain: Chain }
 
-const containerStyle: React.CSSProperties = {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-  overflow: "hidden",
-}
-
 export function AnalyzeView({ chain }: Props) {
   const { report, progress, isRunning, error, runAnalysis, reset } = useAnalysis()
   const [inputAddr, setInputAddr] = useState("")
@@ -24,7 +17,7 @@ export function AnalyzeView({ chain }: Props) {
   }
 
   return (
-    <div style={containerStyle}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <AnalyzeInput
         value={inputAddr}
         onChange={setInputAddr}
@@ -34,12 +27,20 @@ export function AnalyzeView({ chain }: Props) {
       />
       <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
         {!report && !isRunning && !error && (
-          <div style={{ textAlign: "center", color: "#999", marginTop: 80, fontSize: 14 }}>
+          <div style={{ textAlign: "center", color: "var(--text-tertiary)", marginTop: 80, fontSize: 14 }}>
             Enter an address and click Analyze to start
           </div>
         )}
         {error && (
-          <div style={{ color: "#e53935", background: "#ffebee", padding: 12, borderRadius: 8, marginBottom: 16 }}>
+          <div style={{
+            color: "var(--red)",
+            background: "rgba(248, 113, 113, 0.1)",
+            border: "1px solid rgba(248, 113, 113, 0.2)",
+            padding: 12,
+            borderRadius: 10,
+            marginBottom: 16,
+            fontSize: 13,
+          }}>
             Error: {error}
           </div>
         )}
@@ -54,13 +55,16 @@ export function AnalyzeView({ chain }: Props) {
                 onClick={reset}
                 style={{
                   padding: "8px 20px",
-                  background: "#e65100",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 6,
+                  background: "var(--glass-bg)",
+                  border: "1px solid var(--glass-border)",
+                  borderRadius: 999,
+                  color: "var(--text-secondary)",
                   cursor: "pointer",
                   fontSize: 13,
+                  transition: "all 0.15s",
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--glass-bg-hover)"; e.currentTarget.style.color = "var(--text-primary)" }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--glass-bg)"; e.currentTarget.style.color = "var(--text-secondary)" }}
               >
                 New Analysis
               </button>

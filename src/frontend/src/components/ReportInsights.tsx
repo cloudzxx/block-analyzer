@@ -5,14 +5,40 @@ export function ReportInsights({ insights }: Props) {
 
   return (
     <div style={{
-      background: "#f5f5f5",
-      border: "1px solid #e0e0e0",
-      borderRadius: 8,
+      background: "var(--glass-bg)",
+      border: "1px solid var(--glass-border)",
+      borderRadius: 12,
       padding: 16,
       marginBottom: 16,
     }}>
-      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>AI Insights</div>
-      <div style={{ fontSize: 13, lineHeight: 1.6, color: "#444", whiteSpace: "pre-wrap" }}>
+      <div style={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: "var(--text-primary)",
+        marginBottom: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+      }}>
+        <span style={{
+          width: 20,
+          height: 20,
+          borderRadius: 6,
+          background: "linear-gradient(135deg, var(--accent-start), var(--accent-end))",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 11,
+          color: "white",
+        }}>AI</span>
+        AI Insights
+      </div>
+      <div style={{
+        fontSize: 13,
+        lineHeight: 1.7,
+        color: "var(--text-secondary)",
+        whiteSpace: "pre-wrap",
+      }}>
         {insights}
       </div>
     </div>

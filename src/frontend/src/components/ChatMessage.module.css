@@ -1,36 +1,188 @@
 .msg {
   margin-bottom: 16px;
-  padding: 12px 16px;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .userMsg {
-  background: #e3f2fd;
-  align-self: flex-end;
+  align-items: flex-end;
 }
 
 .assistantMsg {
-  background: #f5f5f5;
+  align-items: flex-start;
 }
 
-.msgLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #666;
-  margin-bottom: 4px;
+.msgBubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.userMsg .msgBubble {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.15));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: var(--text-primary);
+  border-bottom-right-radius: 4px;
+}
+
+.assistantMsg .msgBubble {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
 }
 
 .thinking {
-  color: #999;
+  color: var(--text-tertiary);
   font-style: italic;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+/* Glass Card base */
+.glassCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  width: 100%;
+  max-width: 500px;
+}
+
+.glassCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--glass-border);
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.glassIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.glassCardBody {
+  padding: 12px 14px;
+}
+
+/* Balance display */
+.balanceValue {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.balanceUsd {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.networkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  color: var(--accent-start);
+}
+
+/* Price display */
+.priceValue {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.priceUp {
+  color: var(--green);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.priceDown {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* Mini transaction table */
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.txTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.txTable th,
+.txTable td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.txTable th {
+  color: var(--text-tertiary);
+  font-weight: 500;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.txRow:hover {
+  background: var(--glass-bg-hover);
+}
+
+.txRow a {
+  color: var(--accent-start);
+  text-decoration: none;
+}
+
+.txRow a:hover {
+  text-decoration: underline;
+}
+
+.positive {
+  color: var(--green);
+}
+
+.negative {
+  color: var(--red);
 }
 
 /* Tool Call Card */
 .toolCard {
   margin-top: 8px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
   overflow: hidden;
+  background: var(--glass-bg);
+  width: 100%;
+  max-width: 500px;
 }
 
 .toolHeader {
@@ -38,12 +190,15 @@
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  font-size: 13px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .toolName {
   font-size: 12px;
   font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
 }
 
 .status {
@@ -56,106 +211,21 @@
 }
 
 .toggle {
-  font-size: 12px;
-  color: #1976d2;
+  font-size: 11px;
+  color: var(--accent-start);
   cursor: pointer;
   padding: 4px 0;
   user-select: none;
 }
 
 .codeBlock {
-  background: #fafafa;
+  background: rgba(0, 0, 0, 0.3);
   padding: 8px;
   border-radius: 4px;
   font-size: 11px;
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-all;
-}
-
-/* Balance Card */
-.balanceCard {
-  background: linear-gradient(135deg, #1a237e, #283593);
-  color: white;
-  padding: 16px;
-  border-radius: 10px;
-  margin: 8px 0;
-}
-
-.balanceValue {
-  font-size: 24px;
-  font-weight: 700;
-  font-family: monospace;
-}
-
-.balanceUsd {
-  font-size: 14px;
-  opacity: 0.8;
-  margin-top: 4px;
-}
-
-/* Transaction Table */
-.tableWrapper {
-  overflow-x: auto;
-  margin: 8px 0;
-}
-
-.txTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.txTable th,
-.txTable td {
-  padding: 6px 8px;
-  border-bottom: 1px solid #e0e0e0;
-  text-align: left;
-}
-
-.txTable th {
-  background: #f5f5f5;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-}
-
-.txRow:hover {
-  background: #fafafa;
-}
-
-.txRow a {
-  color: #1976d2;
-  text-decoration: none;
-}
-
-.txRow a:hover {
-  text-decoration: underline;
-}
-
-/* Price Card */
-.priceCard {
-  background: linear-gradient(135deg, #1b5e20, #2e7d32);
-  color: white;
-  padding: 16px;
-  border-radius: 10px;
-  margin: 8px 0;
-}
-
-.priceValue {
-  font-size: 28px;
-  font-weight: 700;
-  font-family: monospace;
-}
-
-.priceUp {
-  color: #a5d6a7;
-  font-size: 14px;
-  margin-top: 4px;
-}
-
-.priceDown {
-  color: #ef9a9a;
-  font-size: 14px;
-  margin-top: 4px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
 }

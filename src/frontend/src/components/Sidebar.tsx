@@ -19,6 +19,7 @@ interface SidebarProps {
   onTemplateClick: (prompt: string) => void
   queryTemplates: QueryTemplate[]
   capabilities: ToolInfo[]
+  onClose: () => void
 }
 
 type Tab = "sessions" | "addresses" | "templates" | "capabilities"
@@ -36,46 +37,49 @@ export function Sidebar(props: SidebarProps) {
   if (!props.open) return null
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.tabs}>
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={`${styles.tab} ${activeTab === t.id ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab(t.id)}
-            title={t.label}
-          >
-            {t.icon}
-          </button>
-        ))}
-      </div>
-      <div className={styles.content}>
-        {activeTab === "sessions" && (
-          <SessionList
-            sessions={props.sessions}
-            activeId={props.activeSessionId}
-            onSelect={props.onSelectSession}
-            onCreate={props.onCreateSession}
-          />
-        )}
-        {activeTab === "addresses" && (
-          <SavedAddresses
-            addresses={props.savedAddresses}
-            onAdd={props.onAddAddress}
-            onRemove={props.onRemoveAddress}
-            onClick={props.onAddressClick}
-          />
-        )}
-        {activeTab === "templates" && (
-          <QueryTemplates
-            templates={props.queryTemplates}
-            onClick={props.onTemplateClick}
-          />
-        )}
-        {activeTab === "capabilities" && (
-          <CapabilitiesShowcase tools={props.capabilities} />
-        )}
-      </div>
-    </aside>
+    <>
+      <div className={styles.overlay} onClick={props.onClose} />
+      <aside className={styles.sidebar}>
+        <div className={styles.tabs}>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              className={`${styles.tab} ${activeTab === t.id ? styles.activeTab : ""}`}
+              onClick={() => setActiveTab(t.id)}
+              title={t.label}
+            >
+              {t.icon}
+            </button>
+          ))}
+        </div>
+        <div className={styles.content}>
+          {activeTab === "sessions" && (
+            <SessionList
+              sessions={props.sessions}
+              activeId={props.activeSessionId}
+              onSelect={props.onSelectSession}
+              onCreate={props.onCreateSession}
+            />
+          )}
+          {activeTab === "addresses" && (
+            <SavedAddresses
+              addresses={props.savedAddresses}
+              onAdd={props.onAddAddress}
+              onRemove={props.onRemoveAddress}
+              onClick={props.onAddressClick}
+            />
+          )}
+          {activeTab === "templates" && (
+            <QueryTemplates
+              templates={props.queryTemplates}
+              onClick={props.onTemplateClick}
+            />
+          )}
+          {activeTab === "capabilities" && (
+            <CapabilitiesShowcase tools={props.capabilities} />
+          )}
+        </div>
+      </aside>
+    </>
   )
 }

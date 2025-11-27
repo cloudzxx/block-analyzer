@@ -11,11 +11,11 @@ interface Props {
 export function SessionList({ sessions, activeId, onSelect, onCreate }: Props) {
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <h4 style={{ margin: 0 }}>Sessions</h4>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <h4 style={{ margin: 0, fontSize: 13, color: "var(--text-primary)" }}>Sessions</h4>
         <button className={styles.addBtn} onClick={onCreate}>+ New</button>
       </div>
-      {sessions.length === 0 && <p style={{ color: "#999", fontSize: 13 }}>No sessions yet</p>}
+      {sessions.length === 0 && <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No sessions yet</p>}
       {sessions.map((s) => (
         <div
           key={s.id}

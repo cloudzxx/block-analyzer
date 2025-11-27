@@ -2,15 +2,10 @@ import { useState } from "react"
 import type { ToolCallInfo } from "../types"
 import styles from "./ChatMessage.module.css"
 
-const chainIcons: Record<string, string> = {
-  eth: "🔵",
-  sol: "🟣",
-}
-
 const chainColors: Record<string, string> = {
-  eth: "#e3f2fd",
-  sol: "#f3e5f5",
-  common: "#f5f5f5",
+  eth: "rgba(99, 102, 241, 0.1)",
+  sol: "rgba(168, 85, 247, 0.1)",
+  common: "transparent",
 }
 
 function detectChain(name: string): string {
@@ -31,9 +26,8 @@ export function ToolCallCard({ call }: Props) {
   return (
     <div className={styles.toolCard}>
       <div className={styles.toolHeader} style={{ background: chainColors[chain] }}>
-        <span>{chainIcons[chain] || "⚙️"}</span>
-        <code className={styles.toolName}>{call.name}</code>
-        <span className={`${styles.status} ${styles[call.status]}`}>
+        <span className={styles.toolName}>{call.name}</span>
+        <span className={styles.status}>
           {call.status === "running" ? "⏳" : call.status === "done" ? "✅" : "❌"}
         </span>
       </div>

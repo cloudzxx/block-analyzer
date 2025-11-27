@@ -13,25 +13,29 @@ interface Props {
 }
 
 function renderContent(content: string, chain: string) {
-  if (content.toLowerCase().includes("balance") && /\d+\.?\d*\s*(ETH|SOL)/i.test(content)) {
-    return <BalanceCard content={content} />
+  const hasBalance = content.toLowerCase().includes("balance") && /\d+\.?\d*\s*(ETH|SOL)/i.test(content)
+  const hasPrice = /\$\s*[\d,]+(?:\.\d+)?/.test(content) && content.toLowerCase().includes("price")
+  const hasTable = content.includes("│") || (content.includes("|") && content.toLowerCase().includes("hash"))
+  const addrMatch = content.match(/0x[a-fA-F0-9]{40}/)
+
+  if (hasBalance) {
+    return <BalanceCard content={content} chain={chain} />
   }
-  if (/\$\s*[\d,]+(?:\.\d+)?/.test(content) && content.toLowerCase().includes("price")) {
+  if (hasPrice) {
     return <PriceCard content={content} />
   }
-  if (content.includes("|") && content.toLowerCase().includes("hash")) {
+  if (hasTable) {
     return <TransactionTable content={content} chain={chain} />
   }
-  const addrMatch = content.match(/0x[a-fA-F0-9]{40}/)
   if (addrMatch) {
     return (
       <>
-        <p>{content}</p>
+        <span>{content}</span>
         <AddressBadge address={addrMatch[0]} chain={chain} />
       </>
     )
   }
-  return <p>{content}</p>
+  return <span>{content}</span>
 }
 
 export function ChatMessage({ message, isStreaming, chain }: Props) {
@@ -39,16 +43,19 @@ export function ChatMessage({ message, isStreaming, chain }: Props) {
     <div
       className={`${styles.msg} ${message.role === "user" ? styles.userMsg : styles.assistantMsg}`}
     >
-      <div className={styles.msgLabel}>
-        {message.role === "user" ? "You" : "Assistant"}
+      <div className={styles.msgBubble}>
+        {message.content && renderContent(message.content, chain)}
+        {isStreaming && !message.content && (
+          <span className={styles.thinking}>Thinking...</span>
+        )}
       </div>
-      {message.content && renderContent(message.content, chain)}
-      {isStreaming && !message.content && (
-        <span className={styles.thinking}>Thinking...</span>
+      {message.toolCalls && message.toolCalls.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {message.toolCalls.map((tc, i) => (
+            <ToolCallCard key={i} call={tc} />
+          ))}
+        </div>
       )}
-      {message.toolCalls?.map((tc, i) => (
-        <ToolCallCard key={i} call={tc} />
-      ))}
     </div>
   )
 }

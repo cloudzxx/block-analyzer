@@ -1,16 +1,15 @@
-import type { Chain, QuickAction } from "../types"
+import type { Chain } from "../types"
 import styles from "./TopBar.module.css"
 
 interface TopBarProps {
   chain: Chain
   onChainChange: (chain: Chain) => void
-  actions: QuickAction[]
-  onAction: (action: QuickAction) => void
   onToggleSidebar: () => void
   sidebarOpen: boolean
+  onAnalyzeClick: () => void
 }
 
-export function TopBar({ chain, onChainChange, actions, onAction, onToggleSidebar, sidebarOpen }: TopBarProps) {
+export function TopBar({ chain, onChainChange, onToggleSidebar, sidebarOpen, onAnalyzeClick }: TopBarProps) {
   return (
     <header className={styles.topBar}>
       <div className={styles.left}>
@@ -19,36 +18,18 @@ export function TopBar({ chain, onChainChange, actions, onAction, onToggleSideba
         </button>
         <span className={styles.logo}>⧫ Block Analyzer</span>
       </div>
-
-      <select
-        className={styles.chainSelect}
-        value={chain}
-        onChange={(e) => onChainChange(e.target.value as Chain)}
-      >
-        <option value="ethereum">Ethereum</option>
-        <option value="solana">Solana</option>
-      </select>
-
-      <div className={styles.actions}>
-        <button
-          className={styles.analyzeBtn}
-          onClick={() => onAction({ id: "analyze", icon: "🧠", label: "Analyze", prompt: () => "" })}
-          title="Analyze wallet"
-        >
-          <span>🧠</span>
-          <span className={styles.actionLabel}>Analyze</span>
+      <div className={styles.right}>
+        <button className={styles.analyzeBtn} onClick={onAnalyzeClick}>
+          🧠 Analyze
         </button>
-        {actions.map((a) => (
-          <button
-            key={a.id}
-            className={styles.actionBtn}
-            onClick={() => onAction(a)}
-            title={a.label}
-          >
-            <span>{a.icon}</span>
-            <span className={styles.actionLabel}>{a.label}</span>
-          </button>
-        ))}
+        <select
+          className={styles.chainSelect}
+          value={chain}
+          onChange={(e) => onChainChange(e.target.value as Chain)}
+        >
+          <option value="ethereum">ETH</option>
+          <option value="solana">SOL</option>
+        </select>
       </div>
     </header>
   )

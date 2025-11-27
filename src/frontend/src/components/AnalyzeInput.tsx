@@ -8,17 +8,15 @@ interface Props {
   chain: Chain
 }
 
-const containerStyle: React.CSSProperties = {
-  display: "flex",
-  gap: 8,
-  padding: "12px 16px",
-  borderBottom: "1px solid #e0e0e0",
-  background: "white",
-}
-
 export function AnalyzeInput({ value, onChange, onAnalyze, isLoading, chain }: Props) {
   return (
-    <div style={containerStyle}>
+    <div style={{
+      display: "flex",
+      gap: 8,
+      padding: "12px 16px",
+      borderBottom: "1px solid var(--glass-border)",
+      background: "var(--bg-secondary)",
+    }}>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -27,10 +25,13 @@ export function AnalyzeInput({ value, onChange, onAnalyze, isLoading, chain }: P
         style={{
           flex: 1,
           padding: "10px 14px",
-          border: "1px solid #ccc",
-          borderRadius: 6,
+          background: "var(--glass-bg)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: 999,
           fontSize: 14,
-          fontFamily: "monospace",
+          fontFamily: "var(--font-mono)",
+          color: "var(--text-primary)",
+          outline: "none",
         }}
         disabled={isLoading}
       />
@@ -40,7 +41,7 @@ export function AnalyzeInput({ value, onChange, onAnalyze, isLoading, chain }: P
         padding: "0 10px",
         fontSize: 12,
         fontWeight: 600,
-        color: "#666",
+        color: "var(--text-secondary)",
       }}>
         {chain === "ethereum" ? "ETH" : "SOL"}
       </span>
@@ -49,13 +50,16 @@ export function AnalyzeInput({ value, onChange, onAnalyze, isLoading, chain }: P
         disabled={isLoading || !value.trim()}
         style={{
           padding: "10px 24px",
-          background: isLoading ? "#ffcc80" : "#e65100",
+          background: !value.trim() || isLoading
+            ? "rgba(99, 102, 241, 0.3)"
+            : "linear-gradient(135deg, var(--accent-start), var(--accent-end))",
           color: "white",
           border: "none",
-          borderRadius: 6,
-          cursor: isLoading || !value.trim() ? "not-allowed" : "pointer",
+          borderRadius: 999,
+          cursor: !value.trim() || isLoading ? "not-allowed" : "pointer",
           fontSize: 14,
           fontWeight: 600,
+          transition: "opacity 0.15s",
         }}
       >
         {isLoading ? "Analyzing..." : "Analyze"}

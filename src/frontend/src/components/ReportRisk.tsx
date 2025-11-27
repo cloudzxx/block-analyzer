@@ -8,45 +8,57 @@ interface Props {
   flags: RiskFlag[]
 }
 
-const scoreColors: Record<string, { bg: string; text: string; label: string }> = {
-  low: { bg: "#e8f5e9", text: "#2e7d32", label: "Low Risk" },
-  medium: { bg: "#fff3e0", text: "#e65100", label: "Medium Risk" },
-  high: { bg: "#ffebee", text: "#c62828", label: "High Risk" },
+const scoreStyles: Record<string, { bg: string; text: string; label: string }> = {
+  low: { bg: "rgba(52, 211, 153, 0.15)", text: "#34d399", label: "Low Risk" },
+  medium: { bg: "rgba(251, 191, 36, 0.15)", text: "#fbbf24", label: "Medium Risk" },
+  high: { bg: "rgba(248, 113, 113, 0.15)", text: "#f87171", label: "High Risk" },
 }
 
-const severityColors: Record<string, { bg: string; text: string }> = {
-  info: { bg: "#e3f2fd", text: "#1565c0" },
-  warning: { bg: "#fff3e0", text: "#e65100" },
-  critical: { bg: "#ffebee", text: "#c62828" },
+const severityStyles: Record<string, { bg: string; text: string }> = {
+  info: { bg: "rgba(99, 102, 241, 0.12)", text: "#6366f1" },
+  warning: { bg: "rgba(251, 191, 36, 0.12)", text: "#fbbf24" },
+  critical: { bg: "rgba(248, 113, 113, 0.12)", text: "#f87171" },
 }
 
 export function ReportRisk({ score, flags }: Props) {
   return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 8, padding: 14, marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Risk Assessment</div>
+    <div style={{
+      background: "var(--glass-bg)",
+      border: "1px solid var(--glass-border)",
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+    }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 12 }}>
+        Risk Assessment
+      </div>
 
       <div style={{
-        display: "inline-block",
-        background: scoreColors[score].bg,
-        color: scoreColors[score].text,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        background: scoreStyles[score].bg,
+        color: scoreStyles[score].text,
         padding: "6px 14px",
-        borderRadius: 20,
+        borderRadius: 999,
         fontSize: 13,
         fontWeight: 600,
         marginBottom: 10,
       }}>
-        {scoreColors[score].label}
+        {score === "low" ? "🟢" : score === "medium" ? "🟡" : "🔴"}
+        {scoreStyles[score].label}
       </div>
 
       {flags.length > 0 && (
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
           {flags.map((f, i) => (
             <span key={i} style={{
-              background: severityColors[f.severity].bg,
-              color: severityColors[f.severity].text,
+              background: severityStyles[f.severity].bg,
+              color: severityStyles[f.severity].text,
               padding: "4px 10px",
-              borderRadius: 12,
+              borderRadius: 999,
               fontSize: 11,
+              border: `1px solid ${severityStyles[f.severity].bg}`,
             }}>
               {f.label}
             </span>

@@ -27,19 +27,21 @@ export function AddressBadge({ address, chain = "ethereum" }: Props) {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 4,
-        background: "#e3f2fd",
-        borderRadius: 12,
-        padding: "2px 10px",
+        gap: 6,
+        background: "rgba(99, 102, 241, 0.12)",
+        border: "1px solid rgba(99, 102, 241, 0.2)",
+        borderRadius: 999,
+        padding: "3px 12px",
         fontSize: 13,
-        fontFamily: "monospace",
+        fontFamily: "var(--font-mono)",
+        color: "var(--accent-start)",
       }}
     >
       <a
         href={explorerUrl}
         target="_blank"
         rel="noopener"
-        style={{ color: "#1976d2", textDecoration: "none" }}
+        style={{ color: "var(--accent-start)", textDecoration: "none" }}
       >
         {address.slice(0, 6)}...{address.slice(-4)}
       </a>
@@ -51,10 +53,10 @@ export function AddressBadge({ address, chain = "ethereum" }: Props) {
           cursor: "pointer",
           fontSize: 12,
           padding: 0,
-          color: "#666",
+          color: "var(--text-tertiary)",
         }}
       >
-        {copied ? "\u2713" : "\uD83D\uDCCB"}
+        {copied ? "✓" : "📋"}
       </button>
     </span>
   )
