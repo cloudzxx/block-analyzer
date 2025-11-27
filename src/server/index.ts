@@ -14,11 +14,22 @@ import { CoinGeckoProvider } from "../providers/coingecko"
 import { createEthGetBalanceTool } from "../tools/eth/getBalance"
 import { createEthGetTransactionsTool } from "../tools/eth/getTransactions"
 import { createEthGetTxDetailTool } from "../tools/eth/getTxDetail"
+import { createEthGetTokenBalanceTool } from "../tools/eth/getTokenBalance"
+import { createEthGetTokenTransfersTool } from "../tools/eth/getTokenTransfers"
+import { createEthGetContractABITool } from "../tools/eth/getContractABI"
+import { createEthGetGasPriceTool } from "../tools/eth/getGasPrice"
+import { createEthGetNFTsTool } from "../tools/eth/getNFTs"
+import { createEthGetTopHoldersTool } from "../tools/eth/getTopHolders"
 import { createSolGetBalanceTool } from "../tools/sol/getBalance"
 import { createSolGetTransactionsTool } from "../tools/sol/getTransactions"
 import { createSolGetTxDetailTool } from "../tools/sol/getTxDetail"
+import { createSolGetTokenBalancesTool } from "../tools/sol/getTokenBalances"
+import { createSolGetTokenTransfersTool } from "../tools/sol/getTokenTransfers"
+import { createSolGetAccountInfoTool } from "../tools/sol/getAccountInfo"
 import { createResolveAddressTool } from "../tools/common/resolveAddress"
 import { createGetEthPriceTool } from "../tools/common/getEthPrice"
+import { createResolveENSTool } from "../tools/common/resolveENS"
+import { createSearchTokenTool } from "../tools/common/searchToken"
 import { createAnalysisRouter } from "./routes/analysis"
 import { AnalysisExecutor as AnalysisExecutorClass } from "../analysis/executor"
 
@@ -34,11 +45,22 @@ const coingecko = new CoinGeckoProvider()
 registry.register(createEthGetBalanceTool(etherscan, cache))
 registry.register(createEthGetTransactionsTool(etherscan, cache))
 registry.register(createEthGetTxDetailTool(etherscan, cache))
+registry.register(createEthGetTokenBalanceTool(etherscan, cache))
+registry.register(createEthGetTokenTransfersTool(etherscan, cache))
+registry.register(createEthGetContractABITool(etherscan, cache))
+registry.register(createEthGetGasPriceTool(etherscan, cache))
+registry.register(createEthGetNFTsTool(etherscan, cache))
+registry.register(createEthGetTopHoldersTool(etherscan, cache))
 registry.register(createSolGetBalanceTool(solscan, cache))
 registry.register(createSolGetTransactionsTool(solscan, cache))
 registry.register(createSolGetTxDetailTool(solscan, cache))
+registry.register(createSolGetTokenBalancesTool(solscan, cache))
+registry.register(createSolGetTokenTransfersTool(solscan, cache))
+registry.register(createSolGetAccountInfoTool(solscan, cache))
 registry.register(createResolveAddressTool(cache))
 registry.register(createGetEthPriceTool(coingecko, cache))
+registry.register(createResolveENSTool(cache))
+registry.register(createSearchTokenTool(cache))
 
 const executor = new AgentExecutor(config, registry, cache)
 const analysisExecutor = new AnalysisExecutorClass(config, cache)

@@ -20,6 +20,10 @@ export class SolscanProvider implements Provider {
       url = `${this.baseUrl}/account/${params.address}`
     } else if (params.module === "account" && params.action === "transactions") {
       url = `${this.baseUrl}/account/transactions?account=${params.address}&limit=${params.limit || "20"}`
+    } else if (params.module === "account" && params.action === "tokens") {
+      url = `${this.baseUrl}/account/tokens?address=${params.address}`
+    } else if (params.module === "token" && params.action === "holders") {
+      url = `${this.baseUrl}/token/holders?tokenAddress=${params.tokenAddress}&limit=${params.limit || "20"}`
     } else if (params.module === "transaction" && params.action === "detail") {
       url = `${this.baseUrl}/transaction/${params.signature}`
     } else {
