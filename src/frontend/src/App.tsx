@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useChat } from "./hooks/useChat"
 import { useChain } from "./hooks/useChain"
 import { useSessions } from "./hooks/useSessions"
@@ -12,16 +12,43 @@ import { QUICK_ACTIONS, QUERY_TEMPLATES, CAPABILITIES } from "./types"
 import type { QuickAction } from "./types"
 import styles from "./App.module.css"
 
+const ADDRESS_ACTIONS = new Set(["balance", "txs", "tokens", "resolve"])
+
+const ACTION_PLACEHOLDERS: Record<string, string> = {
+  balance: "Enter address to check balance...",
+  txs: "Enter address for transactions...",
+  tokens: "Enter address for token balances...",
+  resolve: "Enter ENS name or address to resolve...",
+}
+
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeView, setActiveView] = useState<"chat" | "analyze">("chat")
   const [input, setInput] = useState("")
+  const [pendingAction, setPendingAction] = useState<QuickAction | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const { chain, setChain } = useChain()
   const { sessions, activeId, setActiveId, createSession } = useSessions()
   const { addresses: savedAddresses, add: addAddress, remove: removeAddress } = useSavedAddresses()
   const { messages, sendMessage, isLoading, clearMessages } = useChat()
 
+  useEffect(() => {
+    if (pendingAction && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [pendingAction])
+
+  const resolveAction = (action: QuickAction, addr: string) => {
+    setPendingAction(null)
+    setInput("")
+    sendMessage(action.prompt(addr))
+  }
+
   const handleAction = (action: QuickAction) => {
+    if (ADDRESS_ACTIONS.has(action.id) && !input.trim()) {
+      setPendingAction(action)
+      return
+    }
     const prompt = action.prompt(input || undefined)
     setInput("")
     sendMessage(prompt)
@@ -29,9 +56,26 @@ function App() {
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return
+    if (pendingAction) {
+      resolveAction(pendingAction, input.trim())
+      return
+    }
     sendMessage(input)
     setInput("")
   }
+
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSend()
+    }
+    if (e.key === "Escape" && pendingAction) {
+      setPendingAction(null)
+    }
+  }
+
+  const placeholder = pendingAction
+    ? ACTION_PLACEHOLDERS[pendingAction.id] || "Enter address..."
+    : "Ask about blockchain data..."
 
   const handleSelectSession = (_id: string) => {
     clearMessages()
@@ -111,16 +155,22 @@ function App() {
                 ))}
               </div>
               <div className={styles.inputArea}>
+                {pendingAction && (
+                  <span className={styles.pendingHint}>
+                    {pendingAction.icon} {pendingAction.label}
+                  </span>
+                )}
                 <input
+                  ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Ask about blockchain data..."
+                  onKeyDown={handleInputKeyDown}
+                  placeholder={placeholder}
                   className={styles.input}
                   disabled={isLoading}
                 />
-                <button onClick={handleSend} className={styles.button} disabled={isLoading}>
-                  {isLoading ? "..." : "Send"}
+                <button onClick={handleSend} className={styles.button} disabled={isLoading || !input.trim()}>
+                  {isLoading ? "..." : pendingAction ? "Go" : "Send"}
                 </button>
               </div>
             </>
