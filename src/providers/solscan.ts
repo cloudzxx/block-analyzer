@@ -38,12 +38,16 @@ export class SolscanProvider implements Provider {
     const res = await fetchWithRetry(url, this.apiKey)
 
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      const errMsg = (body as SolscanResponse<unknown>).errors?.[0]?.message || `HTTP ${res.status}`
+      const body: Record<string, unknown> | null = await res.json().catch(() => null)
+      const errMsg = (body as SolscanResponse<unknown>)?.errors?.[0]?.message || `HTTP ${res.status}`
       throw new ProviderError(`Solscan API error: ${errMsg}`)
     }
 
-    const json: SolscanResponse<T> = await res.json()
+    const responseBody: unknown = await res.json().catch(() => null)
+    if (!responseBody) {
+      throw new ProviderError("Solscan API error: empty response")
+    }
+    const json = responseBody as SolscanResponse<T>
     // Solscan 通过 success 字段标识请求是否成功
     if (!json.success || !json.data) {
       throw new ProviderError(`Solscan API error: ${json.errors?.[0]?.message || "Unknown error"}`)
