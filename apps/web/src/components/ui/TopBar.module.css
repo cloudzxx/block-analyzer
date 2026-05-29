@@ -44,7 +44,7 @@
 }
 
 .rainbowDiamond {
-  font-size: 36px;
+  font-size: 25px;
   line-height: 1;
   background: linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00cc00, #0088ff, #4400ff, #aa00ff);
   -webkit-background-clip: text;
