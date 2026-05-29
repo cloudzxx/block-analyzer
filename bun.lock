@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "block-analyzer",
+      "dependencies": {
+        "lru-cache": "^11.5.1",
+      },
     },
     "apps/api": {
       "name": "block-analyzer-api",

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express"
-import { AnalysisExecutor } from "../analysis/executor"
+import { AnalysisExecutor } from "../../../../compute/analytics/executor"
 
 // 分析 SSE 路由：接收地址 → 执行 4 步分析 → 流式返回步骤和报告
 export function createAnalysisRouter(executor: AnalysisExecutor): Router {

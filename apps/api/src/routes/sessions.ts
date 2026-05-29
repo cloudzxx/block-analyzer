@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express"
-import { createSession, getSessions, deleteSession, getMessages } from "../db/index"
+import { createSession, getSessions, deleteSession, getMessages } from "../../../../storage/warehouse/index"
 
 export function createSessionsRouter(): Router {
   const router = Router()

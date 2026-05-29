@@ -6,8 +6,11 @@
   "scripts": {
     "dev:api": "bun --watch apps/api/src/index.ts",
     "dev:web": "cd apps/web && bun run dev",
-    "test": "cd apps/api && bun test",
+    "test": "bun test",
     "test:web": "cd apps/web && tsc && vite build",
     "lint": "cd apps/api && tsc --noEmit"
+  },
+  "dependencies": {
+    "lru-cache": "^11.5.1"
   }
 }

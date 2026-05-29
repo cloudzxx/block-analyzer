@@ -1,0 +1,22 @@
+import { describe, it, expect, jest } from "bun:test"
+import { createGetEthPriceTool } from "./getEthPrice"
+import { CoinGeckoProvider } from "../../../ingest/adapters/coingecko"
+import { createCache } from "../../../storage/cache/lru"
+import type { Config } from "../../../packages/shared/config"
+
+function mc(): Config { return { LLM_API_KEY:"s",LLM_MODEL:"m",LLM_BASE_URL:"https://api.minimaxi.com/v1",ETHERSCAN_API_KEY:"e",SOLSCAN_API_KEY:"s",PORT:3030,FRONTEND_ORIGIN:"h"} }
+
+describe("getEthPrice", () => {
+  it("returns ETH and SOL prices", async () => {
+    const coingecko = new CoinGeckoProvider()
+    const cache = createCache()
+    const tool = createGetEthPriceTool(coingecko, cache)
+    const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ ethereum: { usd: 3500.42 }, solana: { usd: 180.15 } }), { status: 200 })
+    )
+    const result = await tool.execute({}, { config: mc(), cache })
+    expect(result.success).toBe(true)
+    expect((result.data as any).ethereum).toBe(3500.42)
+    mockFetch.mockRestore()
+  })
+})

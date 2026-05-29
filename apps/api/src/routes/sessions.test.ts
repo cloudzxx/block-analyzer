@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test"
 import express from "express"
 import { createSessionsRouter } from "./sessions"
-import { initDb } from "../db/index"
+import { initDb } from "../../../../storage/warehouse/index"
 import type { Database } from "bun:sqlite"
 
 describe("Sessions API", () => {

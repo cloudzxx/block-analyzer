@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express"
-import type { AgentExecutor } from "../agent/executor"
-import { formatSseEvent } from "../agent/executor"
+import type { AgentExecutor } from "../../../../compute/agent/executor"
+import { formatSseEvent } from "../../../../compute/agent/executor"
 
 // Chat SSE 路由：接收用户消息 → 调用 Agent → 流式返回事件
 export function createChatRouter(executor: AgentExecutor): Router {
