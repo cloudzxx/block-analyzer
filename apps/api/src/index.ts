@@ -37,7 +37,7 @@ import { AnalysisExecutor as AnalysisExecutorClass } from "./analysis/executor"
 
 // 1. 配置
 const config = loadConfig()
-initDb()
+initDb("data/data.db")
 
 // 2. 基础设施
 const cache = createCache()

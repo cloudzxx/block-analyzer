@@ -5,11 +5,7 @@
     "moduleResolution": "bundler",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "types": ["bun"]
+    "skipLibCheck": true
   },
-  "include": ["src"],
-  "exclude": ["src/frontend"]
+  "exclude": ["node_modules", "**/dist"]
 }
