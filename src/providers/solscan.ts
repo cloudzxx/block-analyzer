@@ -9,9 +9,10 @@ interface SolscanResponse<T> {
 }
 
 // Solscan 数据提供者：根据 module/action 参数路由到不同 REST 端点
+// 使用 Pro API v2.0（旧版 public-api.solscan.io 已弃用）
 export class SolscanProvider implements Provider {
   readonly name = "solscan"
-  private readonly baseUrl = "https://public-api.solscan.io"
+  private readonly baseUrl = "https://pro-api.solscan.io/v2.0"
 
   constructor(private readonly apiKey: string) {}
 
@@ -19,17 +20,21 @@ export class SolscanProvider implements Provider {
   async request<T>(params: Record<string, string>): Promise<T> {
     let url: string
 
-    // 根据 module + action 路由到不同 API 路径
+    // 根据 module + action 路由到不同 API 路径（Pro API v2.0 格式）
     if (params.module === "account" && params.action === "info") {
-      url = `${this.baseUrl}/account/${params.address}`
+      url = `${this.baseUrl}/account/detail?address=${params.address}`
     } else if (params.module === "account" && params.action === "transactions") {
-      url = `${this.baseUrl}/account/transactions?account=${params.address}&limit=${params.limit || "20"}`
+      const limit = snapLimit(params.limit || "20")
+      url = `${this.baseUrl}/account/transactions?address=${params.address}&limit=${limit}`
+    } else if (params.module === "account" && params.action === "transfer") {
+      const pageSize = snapLimit(params.limit || "20")
+      url = `${this.baseUrl}/account/transfer?address=${params.address}&page_size=${pageSize}&exclude_amount_zero=true`
     } else if (params.module === "account" && params.action === "tokens") {
-      url = `${this.baseUrl}/account/tokens?address=${params.address}`
+      url = `${this.baseUrl}/account/token-accounts?address=${params.address}&type=token&page_size=40&hide_zero=true`
     } else if (params.module === "token" && params.action === "holders") {
-      url = `${this.baseUrl}/token/holders?tokenAddress=${params.tokenAddress}&limit=${params.limit || "20"}`
+      url = `${this.baseUrl}/token/holders?address=${params.tokenAddress}&page_size=${params.limit || "20"}`
     } else if (params.module === "transaction" && params.action === "detail") {
-      url = `${this.baseUrl}/transaction/${params.signature}`
+      url = `${this.baseUrl}/transaction/detail?tx=${params.signature}`
     } else {
       // 兜底：拼装通用 URL
       url = `${this.baseUrl}/${params.module}/${params.action}?${new URLSearchParams(params).toString()}`
@@ -53,11 +58,39 @@ export class SolscanProvider implements Provider {
       throw new ProviderError(`Solscan API error: ${json.errors?.[0]?.message || "Unknown error"}`)
     }
 
-    return json.data
+    // Pro API v2.0 返回 snake_case，转换为 camelCase 以兼容现有工具
+    return normalizeKeys(json.data) as T
   }
 }
 
-// 带重试的 fetch 封装（Solscan 使用 token 认证头）
+// Pro API 的 limit 只接受 10/20/30/40，向上取整到最近的合法值
+function snapLimit(v: string): string {
+  const n = Math.min(parseInt(v, 10) || 20, 40)
+  if (n <= 10) return "10"
+  if (n <= 20) return "20"
+  if (n <= 30) return "30"
+  return "40"
+}
+
+// 递归将对象 key 从 snake_case 转换为 camelCase
+// Pro API v2.0 返回 snake_case，工具代码使用 camelCase
+function normalizeKeys(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(normalizeKeys)
+  }
+  if (value && typeof value === "object" && value !== null) {
+    const obj = value as Record<string, unknown>
+    const result: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(obj)) {
+      const camel = k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+      result[camel] = normalizeKeys(v)
+    }
+    return result
+  }
+  return value
+}
+
+// 带重试的 fetch 封装（Solscan Pro API v2.0 使用 Bearer token 认证）
 async function fetchWithRetry(url: string, apiKey: string, retries = 3): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     const controller = new AbortController()
@@ -66,7 +99,7 @@ async function fetchWithRetry(url: string, apiKey: string, retries = 3): Promise
     try {
       const res = await fetch(url, {
         signal: controller.signal,
-        headers: { "token": apiKey }, // Solscan API Key 放在 token 请求头
+        headers: { "Authorization": `Bearer ${apiKey}` }, // Pro API v2.0 Bearer 认证
       })
       clearTimeout(timer)
 

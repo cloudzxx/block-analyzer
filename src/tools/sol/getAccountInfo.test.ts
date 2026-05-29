@@ -14,7 +14,7 @@ describe("sol_getAccountInfo", () => {
     const cache = createCache()
     const tool = createSolGetAccountInfoTool(provider, cache)
     const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ success: true, data: { address: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuKvCKBHfFJb1A", lamports: 1000000000, owner: "So11111111111111111111111111111111111111112", executable: false, rentEpoch: 0, type: "account" } }), { status: 200 })
+      new Response(JSON.stringify({ success: true, data: { account: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuKvCKBHfFJb1A", lamports: 1000000000, owner_program: "So11111111111111111111111111111111111111112", executable: false, rent_epoch: 0, type: "account", is_oncurve: 1 } }), { status: 200 })
     )
     const result = await tool.execute({ address: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuKvCKBHfFJb1A" }, { config: mockConfig(), cache })
     expect(result.success).toBe(true)

@@ -14,12 +14,13 @@ describe("sol_getTokenBalances", () => {
     const cache = createCache()
     const tool = createSolGetTokenBalancesTool(provider, cache)
     const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ success: true, data: [{ tokenAddress: "So11111111111111111111111111111111111111112", tokenName: "Wrapped SOL", tokenSymbol: "wSOL", tokenAmount: { amount: "1000000000", decimals: 9, uiAmount: 1 }, tokenAccount: "abc" }] }), { status: 200 })
+      new Response(JSON.stringify({ success: true, data: [{ token_account: "abc", token_address: "So11111111111111111111111111111111111111112", amount: 1000000000, token_decimals: 9, owner: "7Ec..." }] }), { status: 200 })
     )
     const result = await tool.execute({ address: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuKvCKBHfFJb1A" }, { config: mockConfig(), cache })
     expect(result.success).toBe(true)
     expect((result.data as any[]).length).toBe(1)
-    expect((result.data as any[])[0].symbol).toBe("wSOL")
+    expect((result.data as any[])[0].mint).toBe("So11111111111111111111111111111111111111112")
+    expect((result.data as any[])[0].amount).toBe(1000000000)
     mockFetch.mockRestore()
   })
 

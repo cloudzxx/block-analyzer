@@ -80,6 +80,9 @@ export class AnalysisExecutor {
         })
         const lamports = info.lamports || 0
         balanceValue = (lamports / 1e9).toString()
+        const prices = await this.priceProvider.getPrices()
+        const usd = parseFloat(balanceValue) * prices.solana
+        usdValue = usd.toFixed(2)
       }
     } catch {}
 
@@ -121,23 +124,23 @@ export class AnalysisExecutor {
           }
         }
       } else {
-        // Solana 交易列表
+        // Solana 交易列表（/account/transactions 不返回 transfer amount，只有 fee）
         const rawTxs = await this.solProvider.request<Array<{
-          txHash?: string; fee?: number; blockTime?: number; signer?: string
+          txHash?: string; fee?: number; blockTime?: number; signer?: string; blockId?: number
         }>>({
-          module: "account", action: "transactions", address: resolvedAddress, limit: "50",
+          module: "account", action: "transactions", address: resolvedAddress, limit: "40",
         })
 
         txCount = rawTxs.length
         for (const tx of rawTxs) {
-          const val = (tx.fee || 0) / 1e9
-          totalValue += val
+          // Solana 交易不含 value 字段，仅记录 fee 作为 activity 参考
+          totalValue += (tx.fee || 0) / 1e9
 
           const counterparty = tx.signer || ""
           if (counterparty && counterparty.toLowerCase() !== resolvedAddress.toLowerCase()) {
             const existing = counterpartyMap.get(counterparty) || { txCount: 0, totalValue: 0 }
             existing.txCount++
-            existing.totalValue += val
+            existing.totalValue += (tx.fee || 0) / 1e9
             counterpartyMap.set(counterparty, existing)
           }
 

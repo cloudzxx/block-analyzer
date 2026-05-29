@@ -14,12 +14,13 @@ describe("sol_getTokenTransfers", () => {
     const cache = createCache()
     const tool = createSolGetTokenTransfersTool(provider, cache)
     const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ success: true, data: [{ txHash: "tx1", blockTime: 1700000000, signer: "sol1", tokenTransfers: [{ from: "sol1", to: "sol2", tokenAddress: "So11111111111111111111111111111111111111112", tokenName: "wSOL", tokenSymbol: "wSOL", amount: 1 }] }] }), { status: 200 })
+      new Response(JSON.stringify({ success: true, data: [{ trans_id: "tx1", block_time: 1700000000, from_address: "sol1", to_address: "sol2", token_address: "So11111111111111111111111111111111111111112", token_decimals: 9, amount: 1000000000, flow: "out" }] }), { status: 200 })
     )
     const result = await tool.execute({ address: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuKvCKBHfFJb1A" }, { config: mockConfig(), cache })
     expect(result.success).toBe(true)
     expect((result.data as any[]).length).toBe(1)
-    expect((result.data as any[])[0].tokenSymbol).toBe("wSOL")
+    expect((result.data as any[])[0].txHash).toBe("tx1")
+    expect((result.data as any[])[0].flow).toBe("out")
     mockFetch.mockRestore()
   })
 

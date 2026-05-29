@@ -26,18 +26,18 @@ export function createSolGetTokenBalancesTool(provider: SolscanProvider, cache: 
         const data = await cache.getOrSet(cacheKey, async () => {
           const tokens = await provider.request<Array<{
             tokenAddress?: string
-            tokenName?: string
-            tokenSymbol?: string
-            tokenAmount?: { amount: string; decimals: number; uiAmount: number }
+            amount?: number
+            tokenDecimals?: number
             tokenAccount?: string
+            owner?: string
           }>>({ module: "account", action: "tokens", address })
-          return tokens.map((t) => ({
+          return (tokens || []).map((t) => ({
             mint: t.tokenAddress || "",
-            name: t.tokenName || "",
-            symbol: t.tokenSymbol || "",
-            amount: t.tokenAmount?.uiAmount ?? 0,
-            rawAmount: t.tokenAmount?.amount || "0",
-            decimals: t.tokenAmount?.decimals ?? 0,
+            name: "",
+            symbol: "",
+            amount: t.amount ?? 0,
+            rawAmount: String(t.amount ?? 0),
+            decimals: t.tokenDecimals ?? 0,
             tokenAccount: t.tokenAccount || "",
           }))
         }, this.cacheTTL!)

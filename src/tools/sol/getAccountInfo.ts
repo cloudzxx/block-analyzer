@@ -25,19 +25,19 @@ export function createSolGetAccountInfoTool(provider: SolscanProvider, cache: Ca
         const cacheKey = `sol:accountInfo:${address}`
         const data = await cache.getOrSet(cacheKey, async () => {
           const info = await provider.request<{
-            address?: string
+            account?: string
             lamports?: number
-            owner?: string
+            ownerProgram?: string
             executable?: boolean
             rentEpoch?: number
             type?: string
-            tokenInfo?: Record<string, unknown>
+            isOncurve?: number
           }>({ module: "account", action: "info", address })
           return {
-            address: info.address || address,
+            address: info.account || address,
             lamports: info.lamports || 0,
             solBalance: ((info.lamports || 0) / 1e9).toFixed(6),
-            owner: info.owner || "",
+            owner: info.ownerProgram || "",
             executable: info.executable || false,
             type: info.type || "unknown",
             rentEpoch: info.rentEpoch || 0,

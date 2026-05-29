@@ -12,7 +12,7 @@ describe("sol_getTransactions", () => {
     const cache = createCache()
     const tool = createSolGetTransactionsTool(provider, cache)
     const mockFetch = jest.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ success: true, data: [{ txHash: "5x...abc", blockTime: 1710000000, slot: 123456, fee: 5000, signer: ["s"], status: "Success" }] }), { status: 200 })
+      new Response(JSON.stringify({ success: true, data: [{ tx_hash: "5x...abc", block_time: 1710000000, block_id: 123456, fee: 5000, signer: "s", status: 1 }] }), { status: 200 })
     )
     const result = await tool.execute({ address: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV" }, { config: mc(), cache })
     expect(result.success).toBe(true)

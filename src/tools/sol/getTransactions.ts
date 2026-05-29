@@ -19,7 +19,7 @@ export function createSolGetTransactionsTool(provider: SolscanProvider, cache: C
 
     async execute(args: Record<string, unknown>): Promise<ToolResult> {
       const address = args.address as string
-      const limit = Math.min(Number(args.limit) || 10, 50)
+      const limit = Math.min(Number(args.limit) || 10, 40)
       if (!address || !isSolanaAddress(address)) {
         return { success: false, error: "Invalid Solana address format" }
       }
@@ -32,7 +32,7 @@ export function createSolGetTransactionsTool(provider: SolscanProvider, cache: C
           (this as Tool).cacheTTL!,
         )
         const transactions = (raw as any[])?.map((tx: any) => ({
-          txHash: tx.txHash, blockTime: tx.blockTime, slot: tx.slot,
+          txHash: tx.txHash, blockTime: tx.blockTime, slot: tx.blockId ?? tx.slot,
           fee: tx.fee, status: tx.status, signer: tx.signer,
         })) || []
         return { success: true, data: transactions }

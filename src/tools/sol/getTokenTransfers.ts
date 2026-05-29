@@ -3,15 +3,27 @@ import type { SolscanProvider } from "../../providers/solscan"
 import type { Cache } from "../../cache/lru"
 import { isSolanaAddress } from "../../shared/chain"
 
+interface TransferItem {
+  transId?: string
+  blockTime?: number
+  fromAddress?: string
+  toAddress?: string
+  tokenAddress?: string
+  tokenDecimals?: number
+  amount?: number
+  flow?: string
+  activityType?: string
+}
+
 export function createSolGetTokenTransfersTool(provider: SolscanProvider, cache: Cache): Tool {
   return {
     name: "sol_getTokenTransfers",
-    description: "Query SPL token transfer activity for a Solana address. Fetches recent token-related transactions.",
+    description: "Query SPL token transfer activity for a Solana address. Uses Pro API /account/transfer endpoint.",
     parameters: {
       type: "object",
       properties: {
         address: { type: "string", description: "Solana address" },
-        limit: { type: "number", description: "Number of records (default: 20, max: 100)" },
+        limit: { type: "number", description: "Number of records (default: 20, max: 40)" },
       },
       required: ["address"],
     },
@@ -25,32 +37,20 @@ export function createSolGetTokenTransfersTool(provider: SolscanProvider, cache:
       try {
         const cacheKey = `sol:tokenTx:${address}`
         const data = await cache.getOrSet(cacheKey, async () => {
-          const txs = await provider.request<Array<{
-            txHash?: string
-            blockTime?: number
-            signer?: string
-            tokenTransfers?: Array<{
-              from: string; to: string; tokenAddress: string
-              tokenName?: string; tokenSymbol?: string; amount?: number
-            }>
-          }>>({ module: "account", action: "transactions", address, limit: String(Math.min(args.limit as number || 20, 100)) })
-
-          return txs
-            .filter((tx) => tx.tokenTransfers && tx.tokenTransfers.length > 0)
-            .flatMap((tx) =>
-              (tx.tokenTransfers || []).map((tt) => ({
-                txHash: tx.txHash,
-                blockTime: tx.blockTime,
-                signer: tx.signer,
-                from: tt.from,
-                to: tt.to,
-                tokenAddress: tt.tokenAddress,
-                tokenName: tt.tokenName || "",
-                tokenSymbol: tt.tokenSymbol || "",
-                amount: tt.amount || 0,
-              }))
-            )
-            .slice(0, Math.min(args.limit as number || 20, 100))
+          const items = await provider.request<TransferItem[]>({
+            module: "account", action: "transfer", address,
+            limit: String(Math.min(Number(args.limit) || 20, 40)),
+          })
+          return (items || []).map((t) => ({
+            txHash: t.transId || "",
+            blockTime: t.blockTime || 0,
+            from: t.fromAddress || "",
+            to: t.toAddress || "",
+            tokenAddress: t.tokenAddress || "",
+            amount: t.amount ?? 0,
+            decimals: t.tokenDecimals ?? 0,
+            flow: t.flow || "",
+          }))
         }, this.cacheTTL!)
         return { success: true, data }
       } catch (err) {

@@ -27,7 +27,7 @@ export function createSolGetTxDetailTool(provider: SolscanProvider, cache: Cache
           Infinity,
         )
         const tx = raw as Record<string, unknown>
-        return { success: true, data: { txHash: tx.txHash, blockTime: tx.blockTime, slot: tx.slot, fee: tx.fee, signer: tx.signer, status: tx.status } }
+        return { success: true, data: { txHash: tx.txHash, blockTime: tx.blockTime, slot: tx.blockId ?? tx.slot, fee: tx.fee, signer: tx.signer, status: tx.status } }
       } catch (err) {
         return { success: false, error: (err as Error).message }
       }
