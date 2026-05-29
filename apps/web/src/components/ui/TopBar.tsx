@@ -16,7 +16,7 @@ export function TopBar({ chain, onChainChange, onToggleSidebar, sidebarOpen, onA
         <button className={styles.menuBtn} onClick={onToggleSidebar} title="Toggle sidebar">
           {sidebarOpen ? "✕" : "☰"}
         </button>
-        <span className={styles.logo}>⧫ Block Analyzer</span>
+        <span className={styles.logo}><span className={styles.rainbowDiamond}>⧫</span> Block Analyzer</span>
       </div>
       <div className={styles.right}>
         <button className={styles.analyzeBtn} onClick={onAnalyzeClick}>

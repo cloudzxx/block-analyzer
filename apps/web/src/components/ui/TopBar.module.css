@@ -33,11 +33,23 @@
 .logo {
   font-size: 18px;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 2px;
   background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
+}
+
+.rainbowDiamond {
+  font-size: 36px;
+  line-height: 1;
+  background: linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00cc00, #0088ff, #4400ff, #aa00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .right {
