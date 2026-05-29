@@ -14,7 +14,7 @@ export function BalanceCard({ content, chain }: Props) {
       <div className={styles.glassCardHeader}>
         <div className={styles.glassIcon}>💰</div>
         <span>Balance</span>
-        <span className={styles.networkChip}>{chain === "ethereum" ? "ETH" : "SOL"}</span>
+        <span className={styles.networkChip}>{chain === "ethereum" ? "Ethereum" : "Solana"}</span>
       </div>
       <div className={styles.glassCardBody}>
         <div className={styles.balanceValue}>

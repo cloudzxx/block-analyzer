@@ -27,8 +27,8 @@ export function TopBar({ chain, onChainChange, onToggleSidebar, sidebarOpen, onA
           value={chain}
           onChange={(e) => onChainChange(e.target.value as Chain)}
         >
-          <option value="ethereum">ETH</option>
-          <option value="solana">SOL</option>
+          <option value="ethereum">Ethereum</option>
+          <option value="solana">Solana</option>
         </select>
       </div>
     </header>

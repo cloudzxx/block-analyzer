@@ -43,7 +43,7 @@ export function AnalyzeInput({ value, onChange, onAnalyze, isLoading, chain }: P
         fontWeight: 600,
         color: "var(--text-secondary)",
       }}>
-        {chain === "ethereum" ? "ETH" : "SOL"}
+        {chain === "ethereum" ? "Ethereum" : "Solana"}
       </span>
       <button
         onClick={onAnalyze}
