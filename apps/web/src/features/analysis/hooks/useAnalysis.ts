@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import type { AnalysisReport, AnalysisProgress } from "../../types"
+import type { AnalysisReport, AnalysisProgress } from "../../../types"
 
 // 分析 SSE Hook：管理分析进度条 + 报告状态
 interface UseAnalysisReturn {

@@ -1,5 +1,5 @@
-import type { Session } from "../../types"
-import styles from "./Sidebar.module.css"
+import type { Session } from "../../../types"
+import styles from "../../../components/ui/Sidebar.module.css"
 
 interface Props {
   sessions: Session[]

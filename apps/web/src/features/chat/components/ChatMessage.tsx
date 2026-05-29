@@ -1,9 +1,9 @@
-import type { ChatMessage as ChatMessageType } from "../../types"
+import type { ChatMessage as ChatMessageType } from "../../../types"
 import { ToolCallCard } from "./ToolCallCard"
 import { BalanceCard } from "./BalanceCard"
 import { TransactionTable } from "./TransactionTable"
 import { PriceCard } from "./PriceCard"
-import { AddressBadge } from "./AddressBadge"
+import { AddressBadge } from "../../../components/ui/AddressBadge"
 import styles from "./ChatMessage.module.css"
 
 interface Props {
