@@ -204,14 +204,33 @@ Respond in this exact JSON format:
           choices: Array<{ message: { content: string } }>
         }
         const content = json.choices?.[0]?.message?.content || ""
-        const parsed = JSON.parse(content)
-        riskScore = parsed.riskScore || "low"
-        riskFlags = parsed.riskFlags || []
-        insights = parsed.insights || ""
+        const parsed = tryExtractJSON(content)
+        if (parsed) {
+          riskScore = parsed.riskScore || "low"
+          riskFlags = parsed.riskFlags || []
+          insights = parsed.insights || ""
+        } else {
+          insights = content || "AI analysis unavailable."
+        }
       }
-    } catch {
+    } catch (err) {
+      console.error("AI insights error:", err)
       insights = "AI analysis unavailable. Showing raw data."
     }
+
+// 从 LLM 回复中提取 JSON：优先直接解析，其次从 ```json 代码块中提取
+function tryExtractJSON(text: string): Record<string, unknown> | null {
+  try { return JSON.parse(text) } catch {}
+  const blockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (blockMatch) {
+    try { return JSON.parse(blockMatch[1]) } catch {}
+  }
+  const braceMatch = text.match(/\{[\s\S]*\}/)
+  if (braceMatch) {
+    try { return JSON.parse(braceMatch[0]) } catch {}
+  }
+  return null
+}
 
     // 组装最终分析报告
     const report: AnalysisReport = {
