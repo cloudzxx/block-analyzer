@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { SavedAddress, Chain } from "../types"
+import type { SavedAddress, Chain } from "../../types"
 import styles from "./Sidebar.module.css"
 
 interface Props {

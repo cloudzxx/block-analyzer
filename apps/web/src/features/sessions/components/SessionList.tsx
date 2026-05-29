@@ -1,4 +1,4 @@
-import type { Session } from "../types"
+import type { Session } from "../../types"
 import styles from "./Sidebar.module.css"
 
 interface Props {

@@ -1,4 +1,4 @@
-import type { AnalysisProgress } from "../types"
+import type { AnalysisProgress } from "../../types"
 
 interface Props { steps: AnalysisProgress[] }
 

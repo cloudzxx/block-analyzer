@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { ToolCallInfo } from "../types"
+import type { ToolCallInfo } from "../../types"
 import styles from "./ChatMessage.module.css"
 
 const chainColors: Record<string, string> = {

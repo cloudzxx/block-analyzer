@@ -1,6 +1,6 @@
 import { useState } from "react"
-import type { Session, SavedAddress, QueryTemplate, ToolInfo } from "../types"
-import { SessionList } from "./SessionList"
+import type { Session, SavedAddress, QueryTemplate, ToolInfo } from "../../types"
+import { SessionList } from "../../features/sessions/components/SessionList"
 import { SavedAddresses } from "./SavedAddresses"
 import { QueryTemplates } from "./QueryTemplates"
 import { CapabilitiesShowcase } from "./CapabilitiesShowcase"

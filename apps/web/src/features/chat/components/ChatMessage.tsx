@@ -1,4 +1,4 @@
-import type { ChatMessage as ChatMessageType } from "../types"
+import type { ChatMessage as ChatMessageType } from "../../types"
 import { ToolCallCard } from "./ToolCallCard"
 import { BalanceCard } from "./BalanceCard"
 import { TransactionTable } from "./TransactionTable"

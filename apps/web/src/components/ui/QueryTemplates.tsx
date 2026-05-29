@@ -1,4 +1,4 @@
-import type { QueryTemplate } from "../types"
+import type { QueryTemplate } from "../../types"
 
 interface Props {
   templates: QueryTemplate[]

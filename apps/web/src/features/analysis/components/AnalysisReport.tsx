@@ -1,4 +1,4 @@
-import type { AnalysisReport as ReportType } from "../types"
+import type { AnalysisReport as ReportType } from "../../types"
 import { ReportOverview } from "./ReportOverview"
 import { ReportActivity } from "./ReportActivity"
 import { ReportCounterparties } from "./ReportCounterparties"

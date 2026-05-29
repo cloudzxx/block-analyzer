@@ -3,7 +3,7 @@ import { useAnalysis } from "../hooks/useAnalysis"
 import { AnalyzeInput } from "./AnalyzeInput"
 import { AnalyzeProgress } from "./AnalyzeProgress"
 import { AnalysisReport } from "./AnalysisReport"
-import type { Chain } from "../types"
+import type { Chain } from "../../types"
 
 interface Props { chain: Chain }
 

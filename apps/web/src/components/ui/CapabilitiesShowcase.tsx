@@ -1,4 +1,4 @@
-import type { ToolInfo } from "../types"
+import type { ToolInfo } from "../../types"
 
 interface Props { tools: ToolInfo[] }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import type { Session } from "../types"
+import type { Session } from "../../types"
 
 export function useSessions() {
   const [sessions, setSessions] = useState<Session[]>([])

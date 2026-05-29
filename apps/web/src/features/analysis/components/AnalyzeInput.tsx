@@ -1,4 +1,4 @@
-import type { Chain } from "../types"
+import type { Chain } from "../../types"
 
 interface Props {
   value: string
