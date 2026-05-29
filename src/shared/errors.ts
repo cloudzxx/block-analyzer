@@ -1,3 +1,5 @@
+// 错误基础类，包含错误码和 HTTP 状态码
+// 错误层次：AppError → ConfigError | ProviderError | ValidationError
 export class AppError extends Error {
   constructor(
     message: string,
@@ -9,6 +11,7 @@ export class AppError extends Error {
   }
 }
 
+// 配置错误：环境变量缺失或格式错误时抛出
 export class ConfigError extends AppError {
   constructor(message: string) {
     super(message, "CONFIG_ERROR", 500)
@@ -16,6 +19,7 @@ export class ConfigError extends AppError {
   }
 }
 
+// 数据源错误：调用 Etherscan/Solscan/CoinGecko 失败时抛出
 export class ProviderError extends AppError {
   constructor(message: string, statusCode: number = 502) {
     super(message, "PROVIDER_ERROR", statusCode)
@@ -23,6 +27,7 @@ export class ProviderError extends AppError {
   }
 }
 
+// 参数校验错误：用户输入不合法时抛出
 export class ValidationError extends AppError {
   constructor(message: string) {
     super(message, "VALIDATION_ERROR", 400)

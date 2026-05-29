@@ -33,15 +33,22 @@ import { createSearchTokenTool } from "../tools/common/searchToken"
 import { createAnalysisRouter } from "./routes/analysis"
 import { AnalysisExecutor as AnalysisExecutorClass } from "../analysis/executor"
 
+// === 应用入口：初始化所有依赖并启动 Express 服务 ===
+
+// 1. 配置
 const config = loadConfig()
 initDb()
 
+// 2. 基础设施
 const cache = createCache()
 const registry = new ToolRegistry()
+
+// 3. 区块链数据源（Provider）
 const etherscan = new EtherscanProvider(config.ETHERSCAN_API_KEY)
 const solscan = new SolscanProvider(config.SOLSCAN_API_KEY)
 const coingecko = new CoinGeckoProvider()
 
+// 4. 注册 19 个工具（9 ETH + 6 SOL + 4 通用）
 registry.register(createEthGetBalanceTool(etherscan, cache))
 registry.register(createEthGetTransactionsTool(etherscan, cache))
 registry.register(createEthGetTxDetailTool(etherscan, cache))
@@ -62,10 +69,12 @@ registry.register(createGetEthPriceTool(coingecko, cache))
 registry.register(createResolveENSTool(cache))
 registry.register(createSearchTokenTool(cache))
 
+// 5. Agent 与分析执行器
 const executor = new AgentExecutor(config, registry, cache)
 const analysisExecutor = new AnalysisExecutorClass(config, cache)
-const app = express()
 
+// 6. Express 应用
+const app = express()
 app.use(express.json())
 app.use(corsMiddleware(config.FRONTEND_ORIGIN))
 app.use("/api", createChatRouter(executor))

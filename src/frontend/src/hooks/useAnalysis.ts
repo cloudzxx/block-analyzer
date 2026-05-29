@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react"
 import type { AnalysisReport, AnalysisProgress } from "../types"
 
+// 分析 SSE Hook：管理分析进度条 + 报告状态
 interface UseAnalysisReturn {
   report: AnalysisReport | null
   progress: AnalysisProgress[]
@@ -10,6 +11,7 @@ interface UseAnalysisReturn {
   reset: () => void
 }
 
+// 分析流程的固定 4 个步骤
 const STEPS = ["resolve", "balance", "transactions", "insights"]
 const STEP_LABELS: Record<string, string> = {
   resolve: "Resolving address",
@@ -24,6 +26,7 @@ export function useAnalysis(): UseAnalysisReturn {
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // 初始化进度条：所有步骤设为 pending
   const initProgress = useCallback(() => {
     return STEPS.map((step) => ({
       step,
@@ -45,6 +48,7 @@ export function useAnalysis(): UseAnalysisReturn {
         body: JSON.stringify({ address, chain }),
       })
 
+      // 读取 SSE 流，更新进度条和报告
       const reader = res.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ""
@@ -54,6 +58,7 @@ export function useAnalysis(): UseAnalysisReturn {
         if (done) break
         buffer += decoder.decode(value, { stream: true })
 
+        // 解析 SSE 事件
         while (true) {
           const eventEnd = buffer.indexOf("\n\n")
           if (eventEnd === -1) break
@@ -70,7 +75,8 @@ export function useAnalysis(): UseAnalysisReturn {
           try { data = JSON.parse(dataStr) } catch {}
 
           switch (eventType) {
-            case "step_start": {
+            case "step_start":
+              // 步骤开始：将该步骤标记为 running
               const step = data.step as string
               setProgress((prev) =>
                 prev.map((p) => ({
@@ -79,26 +85,24 @@ export function useAnalysis(): UseAnalysisReturn {
                 }))
               )
               break
-            }
-            case "step_result": {
-              const step = data.step as string
+            case "step_result":
+              // 步骤完成：标记为 done
+              const doneStep = data.step as string
               setProgress((prev) =>
                 prev.map((p) => ({
                   ...p,
-                  status: p.step === step ? "done" : p.status,
+                  status: p.step === doneStep ? "done" : p.status,
                 }))
               )
               break
-            }
-            case "report": {
+            case "report":
+              // 分析报告就绪
               const reportData = data.report as AnalysisReport
               setReport(reportData)
               break
-            }
-            case "error": {
+            case "error":
               setError((data.message as string) || "Analysis failed")
               break
-            }
           }
         }
       }

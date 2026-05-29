@@ -1,3 +1,4 @@
+// 构建 LLM 系统提示词 — 定义 AI 助手的角色和能力边界
 export function buildSystemPrompt(): string {
   return `You are a blockchain data analysis expert. You have access to real-time on-chain data for both Ethereum and Solana blockchains.
 

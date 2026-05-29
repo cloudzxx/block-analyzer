@@ -11,6 +11,7 @@ export interface AnalysisStepData {
   data: Record<string, unknown>
 }
 
+// 分析执行器：固定 4 步流程，分别调用区块链 API 获取数据，最后由 LLM 生成洞察
 export class AnalysisExecutor {
   private ethProvider: EtherscanProvider
   private solProvider: SolscanProvider
@@ -25,12 +26,15 @@ export class AnalysisExecutor {
     this.priceProvider = new CoinGeckoProvider()
   }
 
+  // 分析主流程：resolve → balance → transactions → insights（SSE 流式输出）
   async *analyze(address: string, chain: string): AsyncGenerator<AnalysisStepData | { type: "report"; report: AnalysisReport }> {
     let resolvedAddress = address
     let label = ""
 
+    // === 第一步：解析地址 ===
     yield { step: "resolve" as AnalysisStep, label: "Resolving address", data: {} }
     if (chain === "ethereum" && address.endsWith(".eth")) {
+      // ENS 名称解析（通过 ensideas 公共 API）
       try {
         const res = await fetch(
           `https://api.ensideas.com/ens/resolve/${encodeURIComponent(address)}`
@@ -42,6 +46,7 @@ export class AnalysisExecutor {
         }
       } catch {}
     }
+    // 如果是标准十六进制地址或 Solana Base58 地址，直接使用
     if (chain === "ethereum" && /^0x[a-fA-F0-9]{40}$/.test(address)) {
       resolvedAddress = address
     }
@@ -49,6 +54,7 @@ export class AnalysisExecutor {
       resolvedAddress = address
     }
 
+    // === 第二步：获取余额 ===
     yield { step: "balance" as AnalysisStep, label: `Fetching ${chain} balance`, data: {} }
     let balanceValue = "0"
     let unit = chain === "ethereum" ? "ETH" : "SOL"
@@ -56,15 +62,19 @@ export class AnalysisExecutor {
 
     try {
       if (chain === "ethereum") {
+        // 调用 Etherscan API 获取 ETH 余额（返回 Wei）
         const wei = await this.ethProvider.request<string>({
           module: "account", action: "balance", address: resolvedAddress, tag: "latest",
         })
+        // Wei 转换为 Ether（1 ETH = 10^18 Wei）
         const ether = (BigInt(wei) / BigInt(1_000_000_000_000_000_000n)).toString()
         balanceValue = ether
+        // 获取实时价格并计算 USD 估值
         const prices = await this.priceProvider.getPrices()
         const usd = parseFloat(ether) * prices.ethereum
         usdValue = usd.toFixed(2)
       } else {
+        // Solana 余额查询（返回 lamports，1 SOL = 10^9 lamports）
         const info = await this.solProvider.request<{ lamports: number }>({
           module: "account", action: "info", address: resolvedAddress,
         })
@@ -73,8 +83,10 @@ export class AnalysisExecutor {
       }
     } catch {}
 
+    // === 第三步：获取交易记录 ===
     yield { step: "transactions" as AnalysisStep, label: "Fetching recent transactions", data: {} }
     let txCount = 0
+    // 交易对手聚合映射
     const counterpartyMap = new Map<string, { txCount: number; totalValue: number }>()
     let firstTxTime = ""
     let lastTxTime = ""
@@ -82,6 +94,7 @@ export class AnalysisExecutor {
 
     try {
       if (chain === "ethereum") {
+        // 调取 Etherscan 交易列表
         const rawTxs = await this.ethProvider.request<Array<{
           hash: string; from: string; to: string; value: string; timeStamp: string
         }>>({
@@ -93,7 +106,7 @@ export class AnalysisExecutor {
         for (const tx of rawTxs) {
           const val = parseFloat(tx.value) || 0
           totalValue += val
-
+          // 找到交易对手方（与当前地址不同的那一方）
           const counterparty = tx.from.toLowerCase() === resolvedAddress.toLowerCase() ? tx.to : tx.from
           if (counterparty && counterparty.toLowerCase() !== resolvedAddress.toLowerCase()) {
             const existing = counterpartyMap.get(counterparty) || { txCount: 0, totalValue: 0 }
@@ -108,6 +121,7 @@ export class AnalysisExecutor {
           }
         }
       } else {
+        // Solana 交易列表
         const rawTxs = await this.solProvider.request<Array<{
           txHash?: string; fee?: number; blockTime?: number; signer?: string
         }>>({
@@ -136,6 +150,7 @@ export class AnalysisExecutor {
       }
     } catch {}
 
+    // 按交互次数排序，取 Top 10 交易对手
     const topCounterparties = [...counterpartyMap.entries()]
       .sort((a, b) => b[1].txCount - a[1].txCount)
       .slice(0, 10)
@@ -145,12 +160,14 @@ export class AnalysisExecutor {
         totalValue: data.totalValue.toFixed(4),
       }))
 
+    // === 第四步：LLM 生成洞察 ===
     yield { step: "insights" as AnalysisStep, label: "AI generating insights", data: {} }
     let insights = ""
     let riskScore: "low" | "medium" | "high" = "low"
     let riskFlags: Array<{ label: string; severity: "info" | "warning" | "critical" }> = []
 
     try {
+      // 构造 LLM 分析提示，要求返回结构化 JSON
       const insightPrompt = `You are a blockchain analysis AI. Analyze this wallet data and produce a concise report.
 
 Address: ${resolvedAddress}${label ? ` (${label})` : ""}
@@ -177,7 +194,7 @@ Respond in this exact JSON format:
         body: JSON.stringify({
           model: this.config.LLM_MODEL,
           messages: [{ role: "user", content: insightPrompt }],
-          temperature: 0.3,
+          temperature: 0.3, // 低温度以获得更确定的输出
           stream: false,
         }),
       })
@@ -196,6 +213,7 @@ Respond in this exact JSON format:
       insights = "AI analysis unavailable. Showing raw data."
     }
 
+    // 组装最终分析报告
     const report: AnalysisReport = {
       address,
       resolvedAddress,

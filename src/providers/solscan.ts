@@ -1,21 +1,25 @@
 import type { Provider } from "./types"
 import { ProviderError } from "../shared/errors"
 
+// Solscan API 响应格式
 interface SolscanResponse<T> {
   success: boolean
   data?: T
   errors?: { message: string }[]
 }
 
+// Solscan 数据提供者：根据 module/action 参数路由到不同 REST 端点
 export class SolscanProvider implements Provider {
   readonly name = "solscan"
   private readonly baseUrl = "https://public-api.solscan.io"
 
   constructor(private readonly apiKey: string) {}
 
+  // 通用请求方法：将参数路由到正确的端点
   async request<T>(params: Record<string, string>): Promise<T> {
     let url: string
 
+    // 根据 module + action 路由到不同 API 路径
     if (params.module === "account" && params.action === "info") {
       url = `${this.baseUrl}/account/${params.address}`
     } else if (params.module === "account" && params.action === "transactions") {
@@ -27,6 +31,7 @@ export class SolscanProvider implements Provider {
     } else if (params.module === "transaction" && params.action === "detail") {
       url = `${this.baseUrl}/transaction/${params.signature}`
     } else {
+      // 兜底：拼装通用 URL
       url = `${this.baseUrl}/${params.module}/${params.action}?${new URLSearchParams(params).toString()}`
     }
 
@@ -39,6 +44,7 @@ export class SolscanProvider implements Provider {
     }
 
     const json: SolscanResponse<T> = await res.json()
+    // Solscan 通过 success 字段标识请求是否成功
     if (!json.success || !json.data) {
       throw new ProviderError(`Solscan API error: ${json.errors?.[0]?.message || "Unknown error"}`)
     }
@@ -47,6 +53,7 @@ export class SolscanProvider implements Provider {
   }
 }
 
+// 带重试的 fetch 封装（Solscan 使用 token 认证头）
 async function fetchWithRetry(url: string, apiKey: string, retries = 3): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     const controller = new AbortController()
@@ -55,7 +62,7 @@ async function fetchWithRetry(url: string, apiKey: string, retries = 3): Promise
     try {
       const res = await fetch(url, {
         signal: controller.signal,
-        headers: { "token": apiKey },
+        headers: { "token": apiKey }, // Solscan API Key 放在 token 请求头
       })
       clearTimeout(timer)
 
