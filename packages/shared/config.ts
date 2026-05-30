@@ -4,7 +4,9 @@ export interface Config {
   LLM_MODEL: string        // 模型名称
   LLM_BASE_URL: string     // OpenAI 兼容的 API 基础 URL
   ETHERSCAN_API_KEY: string
+  ETHERSCAN_CHAIN_ID: string // Ethereum 链 ID（默认 Sepolia 测试网）
   SOLSCAN_API_KEY: string
+  SOLSCAN_CLUSTER: string    // Solana 集群（mainnet/testnet/devnet）
   PORT: number             // 服务端口（默认 3030，因 3000 被系统 Next.js 占用）
   FRONTEND_ORIGIN: string  // 前端开发服务器地址（CORS 用）
 }
@@ -24,11 +26,13 @@ export function loadConfig(): Config {
   }
   return {
     LLM_API_KEY: process.env.LLM_API_KEY!,
-    LLM_MODEL: process.env.LLM_MODEL || "MiniMax-M2.7",      // 默认使用 MiniMax
+    LLM_MODEL: process.env.LLM_MODEL || "MiniMax-M2.7",
     LLM_BASE_URL: process.env.LLM_BASE_URL || "https://api.minimaxi.com/v1",
     ETHERSCAN_API_KEY: process.env.ETHERSCAN_API_KEY!,
+    ETHERSCAN_CHAIN_ID: process.env.ETHERSCAN_CHAIN_ID || "11155111", // Sepolia 测试网
     SOLSCAN_API_KEY: process.env.SOLSCAN_API_KEY!,
+    SOLSCAN_CLUSTER: process.env.SOLSCAN_CLUSTER || "testnet",
     PORT: port,
-    FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:5173", // Vite 默认端口
+    FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
   }
 }

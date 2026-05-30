@@ -13,8 +13,11 @@ interface SolscanResponse<T> {
 export class SolscanProvider implements Provider {
   readonly name = "solscan"
   private readonly baseUrl = "https://pro-api.solscan.io/v2.0"
+  private readonly cluster: string
 
-  constructor(private readonly apiKey: string) {}
+  constructor(private readonly apiKey: string, cluster?: string) {
+    this.cluster = cluster || "mainnet"
+  }
 
   // 通用请求方法：将参数路由到正确的端点
   async request<T>(params: Record<string, string>): Promise<T> {
@@ -22,22 +25,21 @@ export class SolscanProvider implements Provider {
 
     // 根据 module + action 路由到不同 API 路径（Pro API v2.0 格式）
     if (params.module === "account" && params.action === "info") {
-      url = `${this.baseUrl}/account/detail?address=${params.address}`
+      url = `${this.baseUrl}/account/detail?address=${params.address}&cluster=${this.cluster}`
     } else if (params.module === "account" && params.action === "transactions") {
       const limit = snapLimit(params.limit || "20")
-      url = `${this.baseUrl}/account/transactions?address=${params.address}&limit=${limit}`
+      url = `${this.baseUrl}/account/transactions?address=${params.address}&limit=${limit}&cluster=${this.cluster}`
     } else if (params.module === "account" && params.action === "transfer") {
       const pageSize = snapLimit(params.limit || "20")
-      url = `${this.baseUrl}/account/transfer?address=${params.address}&page_size=${pageSize}&exclude_amount_zero=true`
+      url = `${this.baseUrl}/account/transfer?address=${params.address}&page_size=${pageSize}&exclude_amount_zero=true&cluster=${this.cluster}`
     } else if (params.module === "account" && params.action === "tokens") {
-      url = `${this.baseUrl}/account/token-accounts?address=${params.address}&type=token&page_size=40&hide_zero=true`
+      url = `${this.baseUrl}/account/token-accounts?address=${params.address}&type=token&page_size=40&hide_zero=true&cluster=${this.cluster}`
     } else if (params.module === "token" && params.action === "holders") {
-      url = `${this.baseUrl}/token/holders?address=${params.tokenAddress}&page_size=${params.limit || "20"}`
+      url = `${this.baseUrl}/token/holders?address=${params.tokenAddress}&page_size=${params.limit || "20"}&cluster=${this.cluster}`
     } else if (params.module === "transaction" && params.action === "detail") {
-      url = `${this.baseUrl}/transaction/detail?tx=${params.signature}`
+      url = `${this.baseUrl}/transaction/detail?tx=${params.signature}&cluster=${this.cluster}`
     } else {
-      // 兜底：拼装通用 URL
-      url = `${this.baseUrl}/${params.module}/${params.action}?${new URLSearchParams(params).toString()}`
+      url = `${this.baseUrl}/${params.module}/${params.action}?${new URLSearchParams(params).toString()}&cluster=${this.cluster}`
     }
 
     const res = await fetchWithRetry(url, this.apiKey)

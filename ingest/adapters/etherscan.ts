@@ -12,9 +12,11 @@ interface EtherscanResponse<T> {
 export class EtherscanProvider implements Provider {
   readonly name = "etherscan"
   private readonly baseUrl = "https://api.etherscan.io/v2/api"
-  private readonly chainId = "1" // Ethereum 主网
+  private readonly chainId: string
 
-  constructor(private readonly apiKey: string) {}
+  constructor(private readonly apiKey: string, chainId?: string) {
+    this.chainId = chainId || "1" // 默认主网
+  }
 
   // 通用请求方法：接收模块/动作参数，返回解析后的数据
   async request<T>(params: Record<string, string>): Promise<T> {

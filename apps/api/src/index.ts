@@ -44,8 +44,8 @@ const cache = createCache()
 const registry = new ToolRegistry()
 
 // 3. 区块链数据源（Provider）
-const etherscan = new EtherscanProvider(config.ETHERSCAN_API_KEY)
-const solscan = new SolscanProvider(config.SOLSCAN_API_KEY)
+const etherscan = new EtherscanProvider(config.ETHERSCAN_API_KEY, config.ETHERSCAN_CHAIN_ID)
+const solscan = new SolscanProvider(config.SOLSCAN_API_KEY, config.SOLSCAN_CLUSTER)
 const coingecko = new CoinGeckoProvider()
 
 // 4. 注册 19 个工具（9 ETH + 6 SOL + 4 通用）
