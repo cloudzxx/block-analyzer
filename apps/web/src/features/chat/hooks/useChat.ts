@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import type { ChatMessage, ToolCallInfo } from "../../../types"
+import type { ChatMessage, ToolCallInfo } from "@/types"
 
 // Chat SSE Hook：管理消息列表、流式接收 Agent 事件
 export function useChat() {

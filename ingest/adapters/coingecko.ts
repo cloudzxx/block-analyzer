@@ -1,4 +1,4 @@
-import { ProviderError } from "../../packages/shared/errors"
+import { ProviderError } from "@shared/errors"
 
 // CoinGecko 价格查询接口
 interface PriceData {

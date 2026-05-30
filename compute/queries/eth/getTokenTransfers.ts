@@ -1,7 +1,7 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { EtherscanProvider } from "../../../ingest/adapters/etherscan"
-import type { Cache } from "../../../storage/cache/lru"
-import { isEthereumAddress } from "../../../packages/shared/chain"
+import type { EtherscanProvider } from "@ingest/adapters/etherscan"
+import type { Cache } from "@storage/cache/lru"
+import { isEthereumAddress } from "@shared/chain"
 
 export function createEthGetTokenTransfersTool(provider: EtherscanProvider, cache: Cache): Tool {
   return {

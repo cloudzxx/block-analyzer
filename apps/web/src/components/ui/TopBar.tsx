@@ -1,4 +1,4 @@
-import type { Chain } from "../../types"
+import type { Chain } from "@/types"
 import styles from "./TopBar.module.css"
 
 interface TopBarProps {

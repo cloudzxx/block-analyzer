@@ -1,9 +1,9 @@
 import { describe, it, expect, jest } from "bun:test"
 import express from "express"
 import { createAnalysisRouter } from "./analysis"
-import { AnalysisExecutor } from "../../../../compute/analytics/executor"
-import { createCache } from "../../../../storage/cache/lru"
-import type { Config } from "../../../../packages/shared/config"
+import { AnalysisExecutor } from "@compute/analytics/executor"
+import { createCache } from "@storage/cache/lru"
+import type { Config } from "@shared/config"
 
 function mc(): Config {
   return { LLM_API_KEY: "sk", LLM_MODEL: "MiniMax-M2.7", LLM_BASE_URL: "https://api.minimaxi.com/v1", ETHERSCAN_API_KEY: "k", SOLSCAN_API_KEY: "k", PORT: 3030, FRONTEND_ORIGIN: "http://localhost:5173" }

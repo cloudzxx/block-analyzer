@@ -1,8 +1,8 @@
-import type { Config } from "../../packages/shared/config"
-import type { Cache } from "../../storage/cache/lru"
-import { EtherscanProvider } from "../../ingest/adapters/etherscan"
-import { SolscanProvider } from "../../ingest/adapters/solscan"
-import { CoinGeckoProvider } from "../../ingest/adapters/coingecko"
+import type { Config } from "@shared/config"
+import type { Cache } from "@storage/cache/lru"
+import { EtherscanProvider } from "@ingest/adapters/etherscan"
+import { SolscanProvider } from "@ingest/adapters/solscan"
+import { CoinGeckoProvider } from "@ingest/adapters/coingecko"
 import type { AnalysisReport, AnalysisStep } from "./types"
 
 export interface AnalysisStepData {

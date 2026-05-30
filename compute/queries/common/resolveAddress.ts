@@ -1,6 +1,6 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { Cache } from "../../../storage/cache/lru"
-import { detectChain } from "../../../packages/shared/chain"
+import type { Cache } from "@storage/cache/lru"
+import { detectChain } from "@shared/chain"
 
 export function createResolveAddressTool(cache: Cache): Tool {
   return {

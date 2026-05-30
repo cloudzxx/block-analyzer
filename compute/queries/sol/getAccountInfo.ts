@@ -1,7 +1,7 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { SolscanProvider } from "../../../ingest/adapters/solscan"
-import type { Cache } from "../../../storage/cache/lru"
-import { isSolanaAddress } from "../../../packages/shared/chain"
+import type { SolscanProvider } from "@ingest/adapters/solscan"
+import type { Cache } from "@storage/cache/lru"
+import { isSolanaAddress } from "@shared/chain"
 
 export function createSolGetAccountInfoTool(provider: SolscanProvider, cache: Cache): Tool {
   return {

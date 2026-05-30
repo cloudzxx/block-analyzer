@@ -1,7 +1,7 @@
 import { ToolRegistry } from "./registry"
 import { buildSystemPrompt } from "./prompt"
-import type { Config } from "../../packages/shared/config"
-import type { Cache } from "../../storage/cache/lru"
+import type { Config } from "@shared/config"
+import type { Cache } from "@storage/cache/lru"
 
 // Agent 事件类型 — 用于 SSE 流式推送
 export interface AgentEvent {

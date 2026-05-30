@@ -1,5 +1,5 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { Cache } from "../../../storage/cache/lru"
+import type { Cache } from "@storage/cache/lru"
 
 export function createSearchTokenTool(cache: Cache): Tool {
   return {

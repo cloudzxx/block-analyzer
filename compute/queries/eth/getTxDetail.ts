@@ -1,6 +1,6 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { EtherscanProvider } from "../../../ingest/adapters/etherscan"
-import type { Cache } from "../../../storage/cache/lru"
+import type { EtherscanProvider } from "@ingest/adapters/etherscan"
+import type { Cache } from "@storage/cache/lru"
 
 const TX_HASH_REGEX = /^0x[0-9a-fA-F]{64}$/
 

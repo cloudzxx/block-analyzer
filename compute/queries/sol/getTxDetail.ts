@@ -1,6 +1,6 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { SolscanProvider } from "../../../ingest/adapters/solscan"
-import type { Cache } from "../../../storage/cache/lru"
+import type { SolscanProvider } from "@ingest/adapters/solscan"
+import type { Cache } from "@storage/cache/lru"
 
 export function createSolGetTxDetailTool(provider: SolscanProvider, cache: Cache): Tool {
   return {

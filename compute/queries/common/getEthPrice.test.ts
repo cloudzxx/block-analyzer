@@ -1,8 +1,8 @@
 import { describe, it, expect, jest } from "bun:test"
 import { createGetEthPriceTool } from "./getEthPrice"
-import { CoinGeckoProvider } from "../../../ingest/adapters/coingecko"
-import { createCache } from "../../../storage/cache/lru"
-import type { Config } from "../../../packages/shared/config"
+import { CoinGeckoProvider } from "@ingest/adapters/coingecko"
+import { createCache } from "@storage/cache/lru"
+import type { Config } from "@shared/config"
 
 function mc(): Config { return { LLM_API_KEY:"s",LLM_MODEL:"m",LLM_BASE_URL:"https://api.minimaxi.com/v1",ETHERSCAN_API_KEY:"e",SOLSCAN_API_KEY:"s",PORT:3030,FRONTEND_ORIGIN:"h"} }
 

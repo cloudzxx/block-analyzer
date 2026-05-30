@@ -1,4 +1,4 @@
-import type { QuickAction } from "../../types"
+import type { QuickAction } from "@/types"
 import styles from "./PillRow.module.css"
 
 interface PillRowProps {

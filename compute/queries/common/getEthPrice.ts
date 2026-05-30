@@ -1,6 +1,6 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { CoinGeckoProvider } from "../../../ingest/adapters/coingecko"
-import type { Cache } from "../../../storage/cache/lru"
+import type { CoinGeckoProvider } from "@ingest/adapters/coingecko"
+import type { Cache } from "@storage/cache/lru"
 
 // ETH/SOL 价格查询工具：调用 CoinGecko API，30s 缓存
 export function createGetEthPriceTool(coingecko: CoinGeckoProvider, cache: Cache): Tool {

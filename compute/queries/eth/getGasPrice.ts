@@ -1,6 +1,6 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { EtherscanProvider } from "../../../ingest/adapters/etherscan"
-import type { Cache } from "../../../storage/cache/lru"
+import type { EtherscanProvider } from "@ingest/adapters/etherscan"
+import type { Cache } from "@storage/cache/lru"
 
 export function createEthGetGasPriceTool(provider: EtherscanProvider, cache: Cache): Tool {
   return {

@@ -1,9 +1,9 @@
 import { describe, it, expect, afterEach } from "bun:test"
 import { AgentExecutor } from "./executor"
 import { ToolRegistry } from "./registry"
-import type { Config } from "../../packages/shared/config"
+import type { Config } from "@shared/config"
 import type { Tool, ToolResult } from "../queries/types"
-import { createCache } from "../../storage/cache/lru"
+import { createCache } from "@storage/cache/lru"
 
 function mockConfig(): Config {
   return { LLM_API_KEY: "sk-test", LLM_MODEL: "MiniMax-M2.7", LLM_BASE_URL: "https://api.minimaxi.com/v1", ETHERSCAN_API_KEY: "e", SOLSCAN_API_KEY: "s", PORT: 3030, FRONTEND_ORIGIN: "http://localhost:5173" }

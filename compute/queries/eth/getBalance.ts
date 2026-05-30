@@ -1,7 +1,7 @@
 import type { Tool, ToolContext, ToolResult } from "../types"
-import type { EtherscanProvider } from "../../../ingest/adapters/etherscan"
-import type { Cache } from "../../../storage/cache/lru"
-import { isEthereumAddress } from "../../../packages/shared/chain"
+import type { EtherscanProvider } from "@ingest/adapters/etherscan"
+import type { Cache } from "@storage/cache/lru"
+import { isEthereumAddress } from "@shared/chain"
 
 // ETH 余额查询工具：调用 Etherscan API，15s 缓存
 export function createEthGetBalanceTool(provider: EtherscanProvider, cache: Cache): Tool {

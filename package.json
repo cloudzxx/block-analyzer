@@ -2,7 +2,7 @@
   "name": "block-analyzer",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": ["apps/*", "packages/*", "ingest", "storage", "compute"],
   "scripts": {
     "dev:api": "bun --watch apps/api/src/index.ts",
     "dev:web": "cd apps/web && bun run dev",

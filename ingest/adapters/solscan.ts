@@ -1,5 +1,5 @@
 import type { Provider } from "./types"
-import { ProviderError } from "../../packages/shared/errors"
+import { ProviderError } from "@shared/errors"
 
 // Solscan API 响应格式
 interface SolscanResponse<T> {

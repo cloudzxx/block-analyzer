@@ -7,6 +7,13 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "outDir": "dist",
+    "baseUrl": "../..",
+    "paths": {
+      "@ingest/*": ["ingest/*"],
+      "@storage/*": ["storage/*"],
+      "@compute/*": ["compute/*"],
+      "@shared/*": ["packages/shared/*"]
+    },
     "types": ["bun"]
   },
   "include": ["src", "../../compute", "../../ingest", "../../storage", "../../packages"]

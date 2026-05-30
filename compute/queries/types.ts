@@ -1,5 +1,5 @@
-import type { Cache } from "../../storage/cache/lru"
-import type { Config } from "../../packages/shared/config"
+import type { Cache } from "@storage/cache/lru"
+import type { Config } from "@shared/config"
 
 // 工具上下文：执行工具时注入的依赖
 export interface ToolContext {
