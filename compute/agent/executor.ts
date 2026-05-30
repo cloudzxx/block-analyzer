@@ -23,13 +23,14 @@ export class AgentExecutor {
     private cache: Cache,
   ) {}
 
-  // 核心入口：接收用户消息，以 AsyncGenerator 流式返回事件
+  // 核心入口：接收用户消息和链标识，以 AsyncGenerator 流式返回事件
   async *run(
     userMessage: string,
     history: Array<{ role: string; content: string }> = [],
+    chain?: string,
   ): AsyncGenerator<AgentEvent> {
     // 构建消息列表：系统提示 + 历史 + 当前用户消息
-    const systemMessage = { role: "system", content: buildSystemPrompt() }
+    const systemMessage = { role: "system", content: buildSystemPrompt(chain) }
     const messages: Array<{ role: string; content: string; tool_calls?: unknown[] }> = [
       systemMessage,
       ...history,

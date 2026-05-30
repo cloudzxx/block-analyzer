@@ -6,7 +6,7 @@ export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
-  const sendMessage = useCallback(async (userMsg: string) => {
+  const sendMessage = useCallback(async (userMsg: string, chain?: string) => {
     if (!userMsg.trim()) return
 
     // 追加用户消息
@@ -21,7 +21,7 @@ export function useChat() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg }),
+        body: JSON.stringify({ message: userMsg, chain }),
       })
 
       // 读取 SSE 流

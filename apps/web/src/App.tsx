@@ -48,7 +48,7 @@ function App() {
   const resolveAction = (action: QuickAction, addr: string) => {
     setPendingAction(null)
     setInput("")
-    sendMessage(action.prompt(addr))
+    sendMessage(action.prompt(addr), chain)
   }
 
   const handleAction = (action: QuickAction) => {
@@ -58,7 +58,7 @@ function App() {
     }
     const prompt = action.prompt(input || undefined)
     setInput("")
-    sendMessage(prompt)
+    sendMessage(prompt, chain)
   }
 
   const handleSend = () => {
@@ -67,7 +67,7 @@ function App() {
       resolveAction(pendingAction, input.trim())
       return
     }
-    sendMessage(input)
+    sendMessage(input, chain)
     setInput("")
   }
 
@@ -94,11 +94,11 @@ function App() {
   }
 
   const handleAddressClick = (address: string) => {
-    sendMessage(`Analyze address ${address} on ${chain}`)
+    sendMessage(`Analyze address ${address} on ${chain}`, chain)
   }
 
   const handleTemplateClick = (prompt: string) => {
-    sendMessage(prompt)
+    sendMessage(prompt, chain)
   }
 
   return (
