@@ -80,6 +80,13 @@ app.use(corsMiddleware(config.FRONTEND_ORIGIN))
 app.use("/api", createChatRouter(executor))
 app.use("/api", createSessionsRouter())
 app.use("/api", createAnalysisRouter(analysisExecutor))
+
+// 生产环境：serve 前端编译后的静态文件
+app.use(express.static("apps/web/dist"))
+app.get(/^(?!\/api).*/, (_req, res) => {
+  res.sendFile("apps/web/dist/index.html", { root: process.cwd() })
+})
+
 app.use(errorHandler)
 
 app.listen(config.PORT, () => {
