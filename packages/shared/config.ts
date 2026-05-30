@@ -29,9 +29,9 @@ export function loadConfig(): Config {
     LLM_MODEL: process.env.LLM_MODEL || "MiniMax-M2.7",
     LLM_BASE_URL: process.env.LLM_BASE_URL || "https://api.minimaxi.com/v1",
     ETHERSCAN_API_KEY: process.env.ETHERSCAN_API_KEY!,
-    ETHERSCAN_CHAIN_ID: process.env.ETHERSCAN_CHAIN_ID || "11155111", // Sepolia 测试网
+    ETHERSCAN_CHAIN_ID: process.env.ETHERSCAN_CHAIN_ID || "1", // 主网
     SOLSCAN_API_KEY: process.env.SOLSCAN_API_KEY!,
-    SOLSCAN_CLUSTER: process.env.SOLSCAN_CLUSTER || "testnet",
+    SOLSCAN_CLUSTER: process.env.SOLSCAN_CLUSTER || "mainnet",
     PORT: port,
     FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
   }
