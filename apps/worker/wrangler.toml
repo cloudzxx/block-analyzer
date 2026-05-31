@@ -1,0 +1,6 @@
+name = "block-analyzer-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[vars]
+ORIGIN_SERVER = "154.37.211.234:3030"
