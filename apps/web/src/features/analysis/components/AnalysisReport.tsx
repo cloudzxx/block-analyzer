@@ -1,6 +1,7 @@
 import type { AnalysisReport as ReportType } from "@/types"
 import { ReportOverview } from "./ReportOverview"
 import { ReportActivity } from "./ReportActivity"
+import { ReportTokenActivity } from "./ReportTokenActivity"
 import { ReportCounterparties } from "./ReportCounterparties"
 import { ReportRisk } from "./ReportRisk"
 import { ReportInsights } from "./ReportInsights"
@@ -16,11 +17,19 @@ export function AnalysisReport({ report }: Props) {
         resolvedAddress={report.resolvedAddress}
         balance={report.balance}
         chain={report.chain}
+        accountType={report.accountType}
       />
       <ReportActivity
         txCount={report.transactions.count}
         timeRange={report.transactions.timeRange}
         chain={report.chain}
+      />
+      <ReportTokenActivity
+        chain={report.chain}
+        ethTransferVolume={report.transactions.ethTransferVolume}
+        topTokens={report.transactions.topTokens}
+        programActivity={report.transactions.programActivity}
+        tokenTransferVolume={report.transactions.tokenTransferVolume}
       />
       <ReportCounterparties counterparties={report.transactions.topCounterparties} />
       <ReportRisk score={report.risk.score} flags={report.risk.flags} />

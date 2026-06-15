@@ -54,6 +54,13 @@ export interface AnalysisReport {
   chain: string
   analysisType: string
   timestamp: number
+  accountType?: {
+    type: string
+    contractName?: string
+    isVerified?: boolean
+    ownerProgram?: string
+    ownerLabel?: string
+  }
   balance: {
     value: string
     unit: string
@@ -67,6 +74,10 @@ export interface AnalysisReport {
       txCount: number
       totalValue: string
     }>
+    ethTransferVolume?: string
+    topTokens?: Array<{ symbol: string; contractAddress: string; transferCount: number }>
+    programActivity?: Array<{ programId: string; label: string; count: number }>
+    tokenTransferVolume?: string
   }
   risk: {
     score: "low" | "medium" | "high"

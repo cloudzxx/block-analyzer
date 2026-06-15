@@ -1,12 +1,36 @@
+interface AccountType {
+  type: string
+  contractName?: string
+  isVerified?: boolean
+  ownerProgram?: string
+  ownerLabel?: string
+}
+
 interface Props {
   label?: string
   address: string
   resolvedAddress: string
   balance: { value: string; unit: string; usdValue: string | null }
   chain: string
+  accountType?: AccountType
 }
 
-export function ReportOverview({ label, address, resolvedAddress, balance, chain }: Props) {
+function accountBadge(accountType: AccountType): { text: string; color: string } | null {
+  const { type, contractName, isVerified, ownerLabel } = accountType
+  if (type === "eoa") return { text: "EOA · Wallet", color: "var(--text-tertiary)" }
+  if (type === "contract") {
+    const name = contractName ? `Contract · ${contractName}` : "Contract"
+    return {
+      text: isVerified ? `${name} · Verified` : `${name} · Unverified`,
+      color: isVerified ? "var(--accent-start)" : "#e0a82e",
+    }
+  }
+  // Solana account types
+  return { text: ownerLabel || type, color: "var(--accent-start)" }
+}
+
+export function ReportOverview({ label, address, resolvedAddress, balance, chain, accountType }: Props) {
+  const badge = accountType ? accountBadge(accountType) : null
   return (
     <div style={{
       background: "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(10, 10, 15, 0.9))",
@@ -30,6 +54,20 @@ export function ReportOverview({ label, address, resolvedAddress, balance, chain
           <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
             {label || address.slice(0, 10) + "..."}
           </div>
+          {badge && (
+            <div style={{
+              display: "inline-block",
+              marginTop: 6,
+              padding: "2px 8px",
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 6,
+              border: `1px solid ${badge.color}`,
+              color: badge.color,
+            }}>
+              {badge.text}
+            </div>
+          )}
           {label && (
             <div style={{
               fontSize: 12,
