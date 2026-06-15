@@ -79,6 +79,13 @@ export interface AnalysisReport {
     programActivity?: Array<{ programId: string; label: string; count: number }>
     tokenTransferVolume?: string
   }
+  mev?: {
+    classification: string
+    privateTxCount: number
+    multiTxBlockCount: number
+    topOfBlockCount: number
+    failedRatio: number
+  }
   risk: {
     score: "low" | "medium" | "high"
     flags: Array<{ label: string; severity: "info" | "warning" | "critical" }>

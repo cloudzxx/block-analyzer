@@ -5,6 +5,7 @@ import { SolscanProvider } from "@ingest/adapters/solscan"
 import { CoinGeckoProvider } from "@ingest/adapters/coingecko"
 import type { AnalysisReport, AnalysisStep } from "./types"
 import { assessDeterministicRisk, mergeRiskScore } from "./risk"
+import { analyzeMevPatterns, type EthTxForClustering } from "./clustering"
 
 // Solana 知名 program 地址 → 可读标签
 // 这些是主网固定地址，不会变化
@@ -180,6 +181,8 @@ export class AnalysisExecutor {
     let ethTransferVolume = 0
     // ETH dust attack 追踪：向目标地址发送微量 ETH（< 0.001）的独立发送方
     const dustSenders = new Set<string>()
+    // ETH MEV 聚类：收集带区块/gas/index 字段的交易供模式分析
+    const ethTxsForMev: EthTxForClustering[] = []
 
     try {
       if (chain === "ethereum") {
@@ -188,6 +191,8 @@ export class AnalysisExecutor {
         const [txsResult, tokenTxsResult] = await Promise.allSettled([
           this.ethProvider.request<Array<{
             hash: string; from: string; to: string; value: string; timeStamp: string
+            blockNumber: string; gasPrice: string; gasUsed: string
+            transactionIndex: string; isError: string
           }>>({
             module: "account", action: "txlist", address: resolvedAddress,
             startblock: "0", endblock: "99999999", page: "1", offset: "50", sort: "desc",
@@ -211,6 +216,20 @@ export class AnalysisExecutor {
             const val = Number(BigInt(tx.value || "0")) / 1e18
             ethTransferVolume += val
             totalValue += val
+
+            // 收集用于 MEV 聚类的字段（区块、gas、index、错误状态）
+            ethTxsForMev.push({
+              hash: tx.hash,
+              from: tx.from,
+              to: tx.to,
+              value: tx.value || "0",
+              timeStamp: tx.timeStamp,
+              blockNumber: tx.blockNumber || "",
+              gasPrice: tx.gasPrice || "",
+              gasUsed: tx.gasUsed,
+              transactionIndex: tx.transactionIndex || "",
+              isError: tx.isError,
+            })
 
             // Dust attack 检测：识别向本地址发送极小金额的外部账户
             // 攻击者通过此手段在链上关联地址身份
@@ -386,6 +405,11 @@ export class AnalysisExecutor {
         count,
       }))
 
+    // ETH MEV / 私有订单流模式识别（仅 ETH，基于区块/gas/index 聚类）
+    const mevAnalysis = chain === "ethereum"
+      ? analyzeMevPatterns(ethTxsForMev, accountType)
+      : null
+
     // 确定性风险规则：在 LLM 之前跑，结果不会被 LLM 覆盖
     // 覆盖：ETH Tornado Cash 地址匹配、dust attack 检测；Solana pump.fun/高风险 program
     const deterministicRisk = assessDeterministicRisk({
@@ -397,6 +421,14 @@ export class AnalysisExecutor {
       dustSenderCount: dustSenders.size,
       txCount,
     })
+
+    // MEV searcher bot 视为风险信号合并进确定性 flags（protected_user 仅作信息提示）
+    if (mevAnalysis && mevAnalysis.classification !== "none") {
+      deterministicRisk.flags.push(...mevAnalysis.signals)
+      if (mevAnalysis.classification === "searcher_bot") {
+        deterministicRisk.score = mergeRiskScore(deterministicRisk.score, "medium")
+      }
+    }
 
     // === 第四步：LLM 生成洞察 ===
     yield { step: "insights" as AnalysisStep, label: "AI generating insights", data: {} }
@@ -428,6 +460,11 @@ export class AnalysisExecutor {
         ? `Native SOL Transfer Volume: ${tokenTransferVolumeSol.toFixed(4)} SOL`
         : ""
 
+      // ETH MEV 分类摘要，帮助 LLM 准确描述钱包类型（机器人 vs 自保用户）
+      const mevLine = mevAnalysis && mevAnalysis.classification !== "none"
+        ? `MEV Classification: ${mevAnalysis.classification} (private-relay tx: ${mevAnalysis.privateTxCount}, multi-tx blocks: ${mevAnalysis.multiTxBlocks.length}, top-of-block: ${mevAnalysis.topOfBlockCount}, failed ratio: ${(mevAnalysis.failedRatio * 100).toFixed(0)}%)`
+        : ""
+
       // 确定性风险发现作为事实传给 LLM，让它生成 insights 时有准确的风险背景
       const deterministicRiskLine = deterministicRisk.flags.length > 0
         ? `Known Risk Findings (deterministic, verified):\n${deterministicRisk.flags.map(f => `  - [${f.severity.toUpperCase()}] ${f.label}`).join("\n")}`
@@ -445,6 +482,7 @@ ${ethVolumeLine}
 ${tokenActivityLine}
 ${tokenVolumeLine}
 ${programLine}
+${mevLine}
 Top Counterparties: ${topCounterparties.slice(0, 3).map(c => `${c.address.slice(0, 10)}... (${c.txCount} interactions)`).join(", ")}
 ${deterministicRiskLine}
 
@@ -520,6 +558,18 @@ Respond in this exact JSON format:
           ? { tokenTransferVolume: tokenTransferVolumeSol.toFixed(4) }
           : {}),
       },
+      // ETH MEV 分类（仅在检测到非 none 时附带）
+      ...(mevAnalysis && mevAnalysis.classification !== "none"
+        ? {
+            mev: {
+              classification: mevAnalysis.classification,
+              privateTxCount: mevAnalysis.privateTxCount,
+              multiTxBlockCount: mevAnalysis.multiTxBlocks.length,
+              topOfBlockCount: mevAnalysis.topOfBlockCount,
+              failedRatio: Number(mevAnalysis.failedRatio.toFixed(2)),
+            },
+          }
+        : {}),
       risk: { score: riskScore, flags: riskFlags },
       insights,
     }

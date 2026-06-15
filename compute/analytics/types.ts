@@ -37,6 +37,15 @@ export interface AnalysisReport {
     // Solana: actual token transfer volume (SOL equivalent)
     tokenTransferVolume?: string
   }
+  // ETH: MEV / private order flow classification
+  mev?: {
+    // "none" | "protected_user" | "mev_active" | "searcher_bot"
+    classification: string
+    privateTxCount: number
+    multiTxBlockCount: number
+    topOfBlockCount: number
+    failedRatio: number
+  }
   risk: {
     score: "low" | "medium" | "high"
     flags: Array<{ label: string; severity: "info" | "warning" | "critical" }>

@@ -3,6 +3,7 @@ import { ReportOverview } from "./ReportOverview"
 import { ReportActivity } from "./ReportActivity"
 import { ReportTokenActivity } from "./ReportTokenActivity"
 import { ReportCounterparties } from "./ReportCounterparties"
+import { ReportMev } from "./ReportMev"
 import { ReportRisk } from "./ReportRisk"
 import { ReportInsights } from "./ReportInsights"
 
@@ -32,6 +33,7 @@ export function AnalysisReport({ report }: Props) {
         tokenTransferVolume={report.transactions.tokenTransferVolume}
       />
       <ReportCounterparties counterparties={report.transactions.topCounterparties} />
+      <ReportMev mev={report.mev} />
       <ReportRisk score={report.risk.score} flags={report.risk.flags} />
       <ReportInsights insights={report.insights} />
     </div>
