@@ -4,6 +4,7 @@ import { EtherscanProvider } from "@ingest/adapters/etherscan"
 import { SolscanProvider } from "@ingest/adapters/solscan"
 import { CoinGeckoProvider } from "@ingest/adapters/coingecko"
 import type { AnalysisReport, AnalysisStep } from "./types"
+import { assessDeterministicRisk, mergeRiskScore } from "./risk"
 
 // Solana 知名 program 地址 → 可读标签
 // 这些是主网固定地址，不会变化
@@ -177,6 +178,8 @@ export class AnalysisExecutor {
     // ETH 专用：ERC-20 token 转账统计
     const tokenCountMap = new Map<string, { symbol: string; count: number }>()
     let ethTransferVolume = 0
+    // ETH dust attack 追踪：向目标地址发送微量 ETH（< 0.001）的独立发送方
+    const dustSenders = new Set<string>()
 
     try {
       if (chain === "ethereum") {
@@ -208,6 +211,12 @@ export class AnalysisExecutor {
             const val = Number(BigInt(tx.value || "0")) / 1e18
             ethTransferVolume += val
             totalValue += val
+
+            // Dust attack 检测：识别向本地址发送极小金额的外部账户
+            // 攻击者通过此手段在链上关联地址身份
+            if (tx.to?.toLowerCase() === resolvedAddress.toLowerCase() && val > 0 && val < 0.001) {
+              dustSenders.add(tx.from.toLowerCase())
+            }
 
             const counterparty = tx.from.toLowerCase() === resolvedAddress.toLowerCase() ? tx.to : tx.from
             if (counterparty && counterparty.toLowerCase() !== resolvedAddress.toLowerCase()) {
@@ -377,6 +386,18 @@ export class AnalysisExecutor {
         count,
       }))
 
+    // 确定性风险规则：在 LLM 之前跑，结果不会被 LLM 覆盖
+    // 覆盖：ETH Tornado Cash 地址匹配、dust attack 检测；Solana pump.fun/高风险 program
+    const deterministicRisk = assessDeterministicRisk({
+      chain,
+      resolvedAddress,
+      accountType,
+      topCounterparties,
+      programActivity: chain === "solana" ? programActivity : undefined,
+      dustSenderCount: dustSenders.size,
+      txCount,
+    })
+
     // === 第四步：LLM 生成洞察 ===
     yield { step: "insights" as AnalysisStep, label: "AI generating insights", data: {} }
     let insights = ""
@@ -407,6 +428,11 @@ export class AnalysisExecutor {
         ? `Native SOL Transfer Volume: ${tokenTransferVolumeSol.toFixed(4)} SOL`
         : ""
 
+      // 确定性风险发现作为事实传给 LLM，让它生成 insights 时有准确的风险背景
+      const deterministicRiskLine = deterministicRisk.flags.length > 0
+        ? `Known Risk Findings (deterministic, verified):\n${deterministicRisk.flags.map(f => `  - [${f.severity.toUpperCase()}] ${f.label}`).join("\n")}`
+        : ""
+
       const insightPrompt = `You are a blockchain analysis AI. Analyze this wallet data and produce a concise report.
 
 Address: ${resolvedAddress}${label ? ` (${label})` : ""}
@@ -420,6 +446,9 @@ ${tokenActivityLine}
 ${tokenVolumeLine}
 ${programLine}
 Top Counterparties: ${topCounterparties.slice(0, 3).map(c => `${c.address.slice(0, 10)}... (${c.txCount} interactions)`).join(", ")}
+${deterministicRiskLine}
+
+The known risk findings above are factual and must be reflected in your riskScore/riskFlags. You may add additional inferred risk flags based on behavior patterns, but do not contradict or omit the known findings.
 
 Respond in this exact JSON format:
 {
@@ -460,6 +489,12 @@ Respond in this exact JSON format:
       console.error("AI insights error:", err)
       insights = "AI analysis unavailable. Showing raw data."
     }
+
+    // 确定性规则结果与 LLM 结果合并：
+    //   - 确定性 flags 在前（事实优先）
+    //   - riskScore 取两者最高值（确定性规则不能被 LLM 降级）
+    riskScore = mergeRiskScore(deterministicRisk.score, riskScore)
+    riskFlags = [...deterministicRisk.flags, ...riskFlags]
 
     const report: AnalysisReport = {
       address,
